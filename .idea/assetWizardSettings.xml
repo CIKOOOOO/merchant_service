@@ -23,7 +23,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="scalingPercent" value="112" />
+                                                <entry key="scalingPercent" value="102" />
                                                 <entry key="trimmed" value="true" />
                                               </map>
                                             </option>
@@ -34,8 +34,11 @@
                                   </option>
                                   <option name="values">
                                     <map>
-                                      <entry key="foregroundImage" value="D:\Work\BCA\Merchant Apps\Aset\merchant_logo.png" />
+                                      <entry key="backgroundImage" value="D:\Work\BCA\Merchant Apps\Aset\transparent.png" />
+                                      <entry key="foregroundImage" value="D:\Work\BCA\Merchant Apps\Aset\merchant_service_logo.png" />
+                                      <entry key="legacyIconShape" value="NONE" />
                                       <entry key="previewDensity" value="HIGH" />
+                                      <entry key="webIconShape" value="NONE" />
                                     </map>
                                   </option>
                                 </PersistentState>

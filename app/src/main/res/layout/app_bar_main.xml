@@ -32,9 +32,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:background="@color/blue_palette"
-            app:itemIconTint="@color/white_color"
-            app:itemTextColor="@color/white_color"
+            app:itemIconSize="20dp"
+            app:itemIconTint="@drawable/bottom_nav_color"
+            app:itemTextColor="@drawable/bottom_nav_color"
+            app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_navigation" />
     </RelativeLayout>
-
 </android.support.design.widget.CoordinatorLayout>
