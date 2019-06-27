@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "200492073600",
+    "firebase_url": "https://bca-merchant-service-apps.firebaseio.com",
+    "project_id": "bca-merchant-service-apps",
+    "storage_bucket": "bca-merchant-service-apps.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200492073600:android:85ecdcc128fee79d",
+        "android_client_info": {
+          "package_name": "com.andrew.prototype"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "200492073600-b9s34c2gqjoudrtt5g0sinltt9hfko74.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.andrew.prototype",
+            "certificate_hash": "5fc5086f627116b6db596cdadf371a650773c33c"
+          }
+        },
+        {
+          "client_id": "200492073600-sh7frlng7i9l89f5d450oev8j52ot8v0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZuLqWunrJYsbk7xNLyF-Abu9uhC54Z3c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "200492073600-sh7frlng7i9l89f5d450oev8j52ot8v0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

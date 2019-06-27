@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
+    android:orientation="horizontal">
+
+    <CheckBox
+        android:id="@+id/recycler_check"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColor="@color/toolbar_base"
+        android:buttonTint="@color/toolbar_base" />
+
+    <TextView
+        android:id="@+id/recycler_info_check"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:textColor="@color/toolbar_base"
+        android:visibility="gone" />
+</LinearLayout>

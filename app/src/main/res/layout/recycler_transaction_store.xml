@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="70dp">
+
+    <ImageView
+        android:id="@+id/recycler_image_bank_logo"
+        android:layout_width="50dp"
+        android:layout_height="30dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/recycler_text_earning_bank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_toEndOf="@id/recycler_image_bank_logo"
+        android:textColor="@color/blue_palette"
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/recycler_text_date_transaction_store"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recycler_text_earning_bank"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@id/recycler_image_bank_logo"
+        android:textColor="@color/mischka_palette"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/recycler_tid_transaction_store"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/recycler_view_dummy_0"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:textColor="@color/gull_gray_palette" />
+
+    <View
+        android:id="@+id/recycler_view_dummy_0"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/recycler_text_date_transaction_store"
+        android:layout_marginTop="10dp"
+        android:background="@color/greyPalette" />
+</RelativeLayout>

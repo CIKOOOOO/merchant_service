@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bot_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/bottom_navigation_home" />
+    <item
+        android:id="@+id/bot_transaction"
+        android:icon="@drawable/ic_credit_card_transparent"
+        android:title="@string/bottom_navigation_transaction" />
+    <item
+        android:id="@+id/bot_edc"
+        android:icon="@drawable/ic_edc"
+        android:title="@string/bottom_navigation_edc" />
+    <item
+        android:id="@+id/bot_store"
+        android:icon="@drawable/ic_store"
+        android:title="@string/bottom_navigation_store" />
+    <item
+        android:id="@+id/bot_account"
+        android:icon="@drawable/ic_acc"
+        android:title="@string/bottom_navigation_account" />
+</menu>

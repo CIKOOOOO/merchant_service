@@ -1,0 +1,125 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Merchant Service Apps</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">Andrew Abednego Gunawan</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="merchant_title">BCA Merchant Forum</string>
+    <string name="job_title">Mobile Programmer</string>
+    <string name="bottom_navigation_home">Home</string>
+    <string name="bottom_navigation_transaction">Transaksi</string>
+    <string name="bottom_navigation_edc">EDC</string>
+    <string name="bottom_navigation_store">Toko</string>
+    <string name="bottom_navigation_account">Akun</string>
+
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="exit">Tekan tombol \'Kembali\' untuk keluar</string>
+    <string name="find_here"><i>Cari Disini . .</i></string>
+    <string name="find_search">Klik pencarian</string>
+    <string name="trending_thread" tools:ignore="Typos">Thread Populer</string>
+    <string name="lorem">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui </string>
+
+    <string name="edit_thread">Sunting thread</string>
+    <string name="delete_thread">Hapus thread</string>
+    <string name="hide_thread">Sembunyikan thread</string>
+    <string name="report_thread">Laporkan thread</string>
+    <string name="dont_show_thread">Jangan perlihatkan thread akun ini</string>
+    <string name="new_thread">Thread Baru</string>
+    <string name="parent">Judul</string>
+    <string name="content">Konten</string>
+    <string name="preview_thread">Tampilan Thread</string>
+    <string name="cancel">Batalkan</string>
+    <string name="send">Kirim</string>
+    <string name="reply">Balas</string>
+    <string name="reply_to">Balas ke:</string>
+    <string name="dont_empty_this_edittext">Bagian ini harus diisi</string>
+    <string name="default_value">0</string>
+    <string name="chosen_image">Gambar yang telah dipilih:</string>
+    <string name="please_wait">Mohon Tunggu..</string>
+    <string name="input_name"><i>Masukkan nama Anda</i></string>
+    <string name="end_of_thread">Kamu telah mencapai halaman akhir</string>
+    <string name="start_of_thread">Kamu telah mencapai halaman pertama</string>
+    <string name="start">Awal</string>
+    <string name="end">Akhir</string>
+    <string name="next">Selanjutnya</string>
+
+    <string name="thread_deleted">Thread is deleted</string>
+    <string name="thread_not_appear">This thread will not appear in your Main Forum</string>
+    <string name="thread_hidden">Thread is hidden</string>
+
+    <string name="info_name">Nama pengguna</string>
+    <string name="info_title">Judul thread</string>
+    <string name="report_sent">Report has been sent</string>
+    <string name="check_hate_speech">Ujaran Kebencian</string>
+    <string name="check_fake_news">Berita Bohong / Palsu</string>
+    <string name="check_porn">Pornografi</string>
+    <string name="check_spam">Spam</string>
+    <string name="check_other">Lainnya:</string>
+
+    <string name="pref_file">pref_file</string>
+    <string name="pref_name">username</string>
+    <string name="pref_location">location</string>
+    <string name="pref_id">id</string>
+
+    <string name="menu_help">EDC Help and Support</string>
+    <string name="menu_qr">QR Code</string>
+    <string name="menu_outlet">Tambah Outlet</string>
+    <string name="menu_request_promo">Promo Request</string>
+    <string name="menu_forum">Merchant Forum</string>
+    <string name="menu_loyalty">Merchant Loyalty</string>
+
+    <string name="mid">MID : 2001558246</string>
+    <string name="change_home_picture">Change Home Picture</string>
+    <string name="change_profile_picture">Change Profile Picture</string>
+    <string name="add_promo">Tambah Promo</string>
+    <string name="request_date">Tanggal Request : </string>
+    <string name="promotion_title">Judul Promosi :</string>
+    <string name="status">Status : </string>
+    <string name="promotion_category">Kategori Promosi</string>
+    <string name="discount">Diskon</string>
+    <string name="installment">Cicilan</string>
+    <string name="cashback">Cashback</string>
+    <string name="special_price">Special Price</string>
+    <string name="period">Periode :</string>
+    <string name="date_from">Dari tanggal</string>
+    <string name="date_to">Sampai tanggal</string>
+    <string name="stuff_category">Kategori Barang</string>
+    <string name="stuff_name">Nama Barang</string>
+    <string name="stuff_discount">Diskon Barang</string>
+    <string name="date">Tanggal</string>
+    <string name="contact_information">Informasi Kontak</string>
+    <string name="month">Bulan</string>
+    <string name="time">Jam</string>
+    <string name="profile">Profile</string>
+    <string name="desc">Deskripsi dan Syarat Ketentuan:</string>
+    <string name="address_promotion">Masukkan alamat promosi berlangsung:</string>
+    <string name="phone_promotion">Masukkan kontak yang dapat dihubungi :</string>
+    <string name="merchant_store">[[ Nama Toko ]]</string>
+    <string name="permission_failed">Gagal menjalankan fitur! Dibutuhkan Permission</string>
+    <string name="download_success">Unduh berhasil!</string>
+    <string name="submit_success">Submit sukses!</string>
+    <string name="not_empty_stuff_name">Nama Barang tidak boleh kosong!</string>
+    <string name="need_valid_price">Masukkan harga yang valid</string>
+    <string name="need_valid_date">Masukkan periode waktu yang valid</string>
+    <string name="need_valid_amount_of_stuff">Masukkan barang yang akan diiklankan</string>
+    <string name="need_valid_phone_number">Masukkan nomor telfon yang valid</string>
+    <string name="need_valid_email_address">Masukkan email yang valid</string>
+    <string name="not_empty_this_field">Bagian ini tidak boleh kosong</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="ads_template_ex">Contoh bentuk iklan</string>
+    <string name="change_category">Dengan mengganti kategori, maka barang yang sebelumnya ditambahkan akan hilang.\nApa anda tetap ingin melanjutkan?</string>
+    <string name="discard_changes">Buang Perubahan</string>
+    <string name="save_changes">Simpan Perubahan</string>
+    <string name="discard_changes_content">Anda memiliki perubahan yang tidak tersimpan.\nApa anda ingin menyimpan perubahan tersebut?</string>
+    <string name="cooperation_agreement">PERJANJIAN KERJASAMA</string>
+</resources>
