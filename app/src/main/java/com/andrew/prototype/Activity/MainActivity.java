@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -41,7 +42,7 @@ import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
-        , View.OnClickListener, DrawerLayout.DrawerListener {
+        , View.OnClickListener, DrawerLayout.DrawerListener, BottomNavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
     private boolean exit = false;
 
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_main);
         ImageButton burgerMenu = findViewById(R.id.burgerMenu);
         ImageButton icon = findViewById(R.id.main_icon_toolbar);
 
@@ -77,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.addDrawerListener(this);
         burgerMenu.setOnClickListener(this);
         navigationView.setNavigationItemSelectedListener(this);
+        bottomNavigationView.setOnNavigationItemSelectedListener(this);
         icon.setOnClickListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -122,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Profile.frame_add_showcase.setVisibility(View.GONE);
                 Profile.showcase_condition = false;
             } else
-                changeFragment(new MainForum());
+                changeFragment(new HomeFragment());
         } else if (fragment instanceof TabPromoRequest) {
             onBackPressFragment = new PromoRequest();
             // Page = 1 adalah kondisi dimana viewpager menunjukkan Fragment Status Promosi
@@ -130,28 +133,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 StatusPromo.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 StatusPromo.isBottomSheetVisible = false;
             } else
-                onBackPressFragment.onBackPress(false,fragment.getContext());
+                onBackPressFragment.onBackPress(false, fragment.getContext());
         } else if (fragment instanceof PreviewProquest) {
             onBackPressFragment = new PreviewProquest();
             onBackPressFragment.onBackPress(false, fragment.getContext());
-        } else {
+        } else if (fragment instanceof MainForum) {
             if (MainForum.showcase_condition) {
                 MainForum.showcase_condition = false;
                 MainForum.frame_showcase.setVisibility(View.GONE);
+            } else changeFragment(new HomeFragment());
+        } else {
+            if (exit) {
+                finish();
             } else {
-                if (exit) {
-                    finish();
-                } else {
-                    Toast.makeText(this, getResources().getText(R.string.exit),
-                            Toast.LENGTH_SHORT).show();
-                    exit = true;
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            exit = false;
-                        }
-                    }, Constant.DELAY);
-                }
+                Toast.makeText(this, getResources().getText(R.string.exit),
+                        Toast.LENGTH_SHORT).show();
+                exit = true;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        exit = false;
+                    }
+                }, Constant.DELAY);
             }
         }
     }
@@ -168,6 +171,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.merchantforum:
                 changeFragment(new MainForum());
+                break;
+
+            case R.id.bot_home:
+                changeFragment(new HomeFragment());
+                break;
+            case R.id.bot_account:
+                changeFragment(new Profile());
+                break;
+            case R.id.bot_edc:
+                break;
+            case R.id.bot_store:
+                break;
+            case R.id.bot_transaction:
                 break;
         }
 
