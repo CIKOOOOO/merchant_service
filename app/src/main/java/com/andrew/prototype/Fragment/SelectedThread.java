@@ -108,7 +108,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
     private List<ForumThread> trendingList, tempList, threadList;
     private List<ForumThread> emptyList;
     private TextView amount_like, chosen_image, error_box;
-    private ImageButton img_more, frame_close, img_download;
+    private ImageButton img_more, frame_close, img_download, img_like;
     private NestedScrollView scrollView;
     private ReplyAdapter replyAdapter;
     private ImagePickerAdapter pickerAdapter;
@@ -123,6 +123,8 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
     private Activity mActivity;
     private ImageView img_frame_selected;
     private TextView merchant_name;
+
+    private boolean isLike;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -145,6 +147,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         frameIsVisible = false;
         PAGE_NUMBER_STATE = 0;
         prefConfig = new PrefConfig(mContext);
+        isLike = false;
 
         TextView merchant_name = v.findViewById(R.id.merchantName_Selected);
         TextView merchant_loc = v.findViewById(R.id.merchantLoc_Selected);
@@ -172,7 +175,6 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         RelativeLayout relativeLayout = v.findViewById(R.id.rl);
         ImageButton imageButton = v.findViewById(R.id.search_selected_thread);
         ImageButton gallery_opener = v.findViewById(R.id.gallery_opener_reply);
-        ImageButton button = v.findViewById(R.id.img_smile_thread);
         ImageButton after = v.findViewById(R.id.btn_after_reply);
         ImageButton after2 = v.findViewById(R.id.btn_after_reply2);
         ImageButton before = v.findViewById(R.id.btn_before_reply);
@@ -184,6 +186,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         TextView last_page = v.findViewById(R.id.btn_end_reply);
         TextView last_page2 = v.findViewById(R.id.btn_end_reply2);
 
+        img_like = v.findViewById(R.id.img_smile_thread);
         etSearch = v.findViewById(R.id.etsearch_selected_thread);
         scrollView = v.findViewById(R.id.scrollView_SelectedThread);
         etReply = v.findViewById(R.id.etReply_Selected);
@@ -229,7 +232,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
 
         img_more.setOnClickListener(this);
         imageButton.setOnClickListener(this);
-        button.setOnClickListener(this);
+        img_like.setOnClickListener(this);
         reply.setOnClickListener(this);
         send.setOnClickListener(this);
         gallery_opener.setOnClickListener(this);
@@ -342,7 +345,15 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                 removeTrending(view.getContext());
                 break;
             case R.id.img_smile_thread:
-                amount_like.setText(Integer.parseInt(amount_like.getText().toString()) + 1 + "");
+                if (!isLike) {
+                    img_like.setBackground(mContext.getResources().getDrawable(R.drawable.smile_press));
+                    amount_like.setText(Integer.parseInt(amount_like.getText().toString()) + 1 + "");
+                    isLike = true;
+                } else {
+                    img_like.setBackground(mContext.getResources().getDrawable(R.drawable.smile));
+                    amount_like.setText(Integer.parseInt(amount_like.getText().toString()) - 1 + "");
+                    isLike = false;
+                }
                 break;
             case R.id.thread_more_selected:
                 Context option_menu = new ContextThemeWrapper(view.getContext(), R.style.PopupMenu);
@@ -384,7 +395,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                     }
 
                     threadList.add(new ForumThread(getDate(), getTime(), etName.getText().toString()
-                            , "Bekasi Timur", 0, R.drawable.reply_profile, etReply.getText().toString()));
+                            , "Bekasi Timur", 0, R.drawable.img_profile1, etReply.getText().toString()));
 
                     replyAdapter.setSyncImgs(syncImgs, threadList);
 

@@ -319,7 +319,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
     public void onSettingClick(int pos) {
         switch (pos) {
             case 3:
-                changeFragment(new PromoRequest());
+                changeFragment(new TabPromoRequest());
                 break;
             case 4:
                 changeFragment(new MainForum());

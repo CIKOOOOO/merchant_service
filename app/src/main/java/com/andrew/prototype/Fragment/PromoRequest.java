@@ -370,8 +370,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
             case R.id.tester_button_promo:
                 etTemplateAds.setText("Promo 1 rupiah");
                 promotionTitle.setText("Promo 1 rupiah");
-                txt_tgl_start.setText("24/06/2019");
-                txt_tgl_end.setText("30/06/2019");
+                txt_tgl_start.setText("24/06/2029");
+                txt_tgl_end.setText("30/06/2029");
                 txt_jam_start.setText("12:00");
                 txt_jam_end.setText("12:00");
                 etDescription.setText("Deskripsi");
@@ -1034,7 +1034,6 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 || !etAddress.getText().toString().isEmpty() || promoFormList.size() > 0) {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-//        AlertDialog alertDialog = builder.create();
             builder.setTitle(context.getResources().getString(R.string.save_changes));
             builder.setMessage(context.getResources().getString(R.string.discard_changes_content));
             builder.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
@@ -1078,13 +1077,13 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                             promoStuffSQLite.insertData(ran, promoForm.getStuffName(), imgArr, value);
                         }
                     }
-                    changeFragment(context, new MainForum());
+                    changeFragment(context, new Profile());
                 }
             });
             builder.setNegativeButton("Tidak, buang perubahan", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    changeFragment(context, new MainForum());
+                    changeFragment(context, new Profile());
                     if (prefConfig.getID() != -1) {
                         promoSQLite.deleteAll(prefConfig.getID());
                         promoStuffSQLite.deleteAll(prefConfig.getID());
@@ -1098,7 +1097,7 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
             promoSQLite.deleteAll(prefConfig.getID());
             promoStuffSQLite.deleteAll(prefConfig.getID());
             prefConfig.insertId(-1);
-            changeFragment(context, new MainForum());
+            changeFragment(context, new Profile());
         }
     }
 

@@ -217,7 +217,7 @@
                             android:id="@+id/txt_dummy_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="IDR"
+                            android:text="Rp"
                             android:textColor="@color/blue_palette"
                             android:textSize="8sp" />
 
@@ -245,7 +245,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentTop="true"
-                            android:text="IDR"
+                            android:text="Rp"
                             android:textColor="@color/blue_palette"
                             android:textSize="8sp" />
 

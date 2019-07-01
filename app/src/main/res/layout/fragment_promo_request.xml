@@ -612,7 +612,7 @@
                     android:alpha="0.5"
                     android:fontFamily="sans-serif"
                     android:gravity="center"
-                    android:text="EXAMPLE"
+                    android:text="CONTOH"
                     android:textColor="@color/blackPalette"
                     android:textSize="30sp"
                     android:textStyle="bold" />

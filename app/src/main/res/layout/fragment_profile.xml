@@ -77,7 +77,7 @@
             </FrameLayout>
 
             <TextView
-                android:id="@+id/namatoko"
+                android:id="@+id/tv_merchant_name_profile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -87,13 +87,77 @@
                 android:textSize="20sp" />
 
             <TextView
-                android:id="@+id/mid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="5dp"
-                android:text="@string/mid"
-                android:textColor="@color/toolbar_base" />
+                android:text="Finance"
+                android:textColor="@color/iron_palette"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/blackPalette" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="20dp"
+                android:weightSum="2">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email"
+                        android:textColor="@color/iron_palette"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tv_email_pofile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:maxLines="2"
+                        android:text="andrew@gmail.com"
+                        android:textColor="@color/blackPalette"
+                        android:textSize="17sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MID Number    "
+                        android:textColor="@color/iron_palette"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/mid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/mid"
+                        android:textColor="@color/blackPalette"
+                        android:textSize="17sp" />
+                </LinearLayout>
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -124,6 +188,19 @@
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never"
                 android:scrollbars="none" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/rectangle_white_corner_blue"
+                android:paddingStart="30dp"
+                android:paddingEnd="30dp"
+                android:text="Keluar"
+                android:textColor="@color/blue_palette" />
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>
 

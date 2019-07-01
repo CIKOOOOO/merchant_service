@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } else changeFragment(new HomeFragment());
         } else {
             if (exit) {
-                finish();
+                finishAffinity();
             } else {
                 Toast.makeText(this, getResources().getText(R.string.exit),
                         Toast.LENGTH_SHORT).show();
