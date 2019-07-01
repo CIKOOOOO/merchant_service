@@ -182,11 +182,14 @@ public class Constant {
 
     // START PROFILE FRAGMENT
 
-    private static final String[] parent = {"Kelola Anggota", "Pengaturan Profile", "Pengaturan Toko"
+    private static final int[] icon = {R.drawable.ic_group_people, R.drawable.ic_people_setting
+            , R.drawable.ic_store_add, R.drawable.ic_help_center, R.drawable.ic_phone};
+
+    private static final String[] parent = {"Kelola Anggota", "Pengaturan Profile", "Tambah Cabang"
             , "Pusat Bantuan", "Tentang Aplikasi"};
 
     private static final String[] child = {"Lihat & atur anggota Anda", "Lihat & atur email dan password Anda"
-            , "Lihat & atur Toko Anda", "Lihat solusi terbaik dan hubungi Kami", "Lihat dan atur anggota Anda"};
+            , "Ajukan penambahan cabang yang belum", "Lihat solusi terbaik dan hubungi Kami", "Pastikan Anda menggunakan versi terbaru"};
 
     //END PROFILE FRAGMENT
 
@@ -264,7 +267,7 @@ public class Constant {
         List<ProfileModel> profileModels = new ArrayList<>();
         int i = 0;
         for (String parent : parent) {
-            profileModels.add(new ProfileModel(parent, child[i]));
+            profileModels.add(new ProfileModel(parent, child[i], icon[i]));
             i++;
         }
         return profileModels;

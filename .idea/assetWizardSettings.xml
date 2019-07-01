@@ -69,7 +69,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/hardware/ic_keyboard_arrow_right_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/hardware/ic_phone_android_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -79,9 +79,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="f37b41" />
-                            <entry key="opacityPercent" value="80" />
-                            <entry key="outputName" value="arrow_right" />
+                            <entry key="opacityPercent" value="57" />
+                            <entry key="outputName" value="ic_phone" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="C:\Users\Andrew" />
                           </map>
