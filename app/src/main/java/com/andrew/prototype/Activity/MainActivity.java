@@ -58,8 +58,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void initVar() {
-        getApplicationContext().deleteDatabase("recent_promo");
-        getApplicationContext().deleteDatabase("stuff_promo");
+//        getApplicationContext().deleteDatabase("recent_promo");
+//        getApplicationContext().deleteDatabase("stuff_promo");
         PrefConfig prefConfig = new PrefConfig(this);
 //        prefConfig.insertId(-1);
         FirebaseApp.initializeApp(this);
@@ -98,6 +98,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (fragment instanceof MainForum && MainForum.trendingIsVisible) {
             onBackPressFragment = new MainForum();
             onBackPressFragment.onBackPress(false, fragment.getContext());
+        } else if (fragment instanceof MainForum) {
+            if (MainForum.showcase_condition) {
+                MainForum.showcase_condition = false;
+                MainForum.frame_showcase.setVisibility(View.GONE);
+            } else changeFragment(new Profile());
         } else if (fragment instanceof NewThread) {
             onBackPressFragment = new NewThread();
             switch (NewThread.THREAD_CONDITION) {
@@ -137,11 +142,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (fragment instanceof PreviewProquest) {
             onBackPressFragment = new PreviewProquest();
             onBackPressFragment.onBackPress(false, fragment.getContext());
-        } else if (fragment instanceof MainForum) {
-            if (MainForum.showcase_condition) {
-                MainForum.showcase_condition = false;
-                MainForum.frame_showcase.setVisibility(View.GONE);
-            } else changeFragment(new HomeFragment());
         } else {
             if (exit) {
                 finishAffinity();
