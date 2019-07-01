@@ -187,21 +187,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
         }
 
-        drawer.closeDrawer(GravityCompat.END);
+//        drawer.closeDrawer(GravityCompat.END);
         return true;
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.burgerMenu:
-                if (drawer.isDrawerOpen(GravityCompat.END)) {
-                    drawer.closeDrawer(GravityCompat.END);
-                } else {
-                    drawer.openDrawer(GravityCompat.END);
-                    hideSoftKeyboard(this);
-                }
-                break;
+//            case R.id.burgerMenu:
+//                if (drawer.isDrawerOpen(GravityCompat.END)) {
+//                    drawer.closeDrawer(GravityCompat.END);
+//                } else {
+//                    drawer.openDrawer(GravityCompat.END);
+//                    hideSoftKeyboard(this);
+//                }
+//                break;
             case R.id.main_icon_toolbar:
                 changeFragment(new MainForum());
                 break;
