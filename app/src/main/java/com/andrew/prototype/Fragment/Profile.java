@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -49,7 +50,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Profile extends Fragment implements View.OnClickListener, ShowcaseAdapter.onImageClickListener {
+public class Profile extends Fragment implements View.OnClickListener, ShowcaseAdapter.onImageClickListener, ProfileAdapter.onClick {
     public static boolean showcase_condition;
     @SuppressLint("StaticFieldLeak")
     public static FrameLayout frame_add_showcase;
@@ -115,7 +116,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         recycler_showcase.setAdapter(showcaseAdapter);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        recyclerView.setAdapter(new ProfileAdapter(mContext, profileModelList));
+        recyclerView.setAdapter(new ProfileAdapter(mContext, profileModelList, this));
 
         profileAdd.setOnClickListener(this);
         homeAdd.setOnClickListener(this);
@@ -257,36 +258,23 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         if (resultCode == MainActivity.RESULT_OK) {
             if (requestCode == PROFILE_REQUEST_CODE && data.getData() != null) {
                 Uri uri = data.getData();
-//                try {
-//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(mActivity.getContentResolver(), uri);
                 Glide.with(mContext)
                         .load(DecodeBitmap.decodeSampleBitmapFromUri(uri, profilePic.getWidth(), profilePic.getHeight(), mContext))
                         .placeholder(scaleDrawable)
                         .into(profilePic);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
             } else if (requestCode == HOME_REQUEST_CODE && data.getData() != null) {
                 Uri uri = data.getData();
-//                File f = new File("" + uri);
-//                   Bitmap bitmap1 = MediaStore.Images.Media.getBitmap(mActivity.getContentResolver(), uri);
                 Glide.with(mContext)
                         .load(DecodeBitmap.decodeSampleBitmapFromUri(uri, homePic.getWidth(), homePic.getHeight(), mContext))
                         .placeholder(scaleDrawable)
                         .into(homePic);
             } else if (requestCode == Constant.ACTIVITY_CHOOSE_IMAGE && data.getData() != null) {
                 Uri uri = data.getData();
-//                File f = new File("" + targetUri);
-//                try {
-//                    Bitmap bitmap = BitmapFactory.decodeStream(mContext.getContentResolver().openInputStream(targetUri));
                 tvError_AddShowCase.setVisibility(View.GONE);
                 Glide.with(mContext)
                         .load(DecodeBitmap.decodeSampleBitmapFromUri(uri, img_add_showcase.getWidth(), img_add_showcase.getHeight(), mContext))
                         .placeholder(scaleDrawable)
                         .into(img_add_showcase);
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
             }
         }
     }
@@ -325,5 +313,24 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         codeBuilder.setView(codeView);
         codeAlert = codeBuilder.create();
         codeAlert.show();
+    }
+
+    @Override
+    public void onSettingClick(int pos) {
+        switch (pos) {
+            case 3:
+                changeFragment(new PromoRequest());
+                break;
+            case 4:
+                changeFragment(new MainForum());
+                break;
+        }
+    }
+
+    private void changeFragment(Fragment fragment) {
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+        fragmentTransaction.replace(R.id.main_frame, fragment);
+        fragmentTransaction.commit();
     }
 }

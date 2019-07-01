@@ -183,13 +183,15 @@ public class Constant {
     // START PROFILE FRAGMENT
 
     private static final int[] icon = {R.drawable.ic_group_people, R.drawable.ic_people_setting
-            , R.drawable.ic_store_add, R.drawable.ic_help_center, R.drawable.ic_phone};
+            , R.drawable.ic_store_add, R.drawable.ic_request, R.drawable.ic_forum
+            , R.drawable.ic_help_center, R.drawable.ic_phone};
 
     private static final String[] parent = {"Kelola Anggota", "Pengaturan Profile", "Tambah Cabang"
-            , "Pusat Bantuan", "Tentang Aplikasi"};
+            , "Ajukan Promo", "Merchant Forum", "Pusat Bantuan", "Tentang Aplikasi"};
 
     private static final String[] child = {"Lihat & atur anggota Anda", "Lihat & atur email dan password Anda"
-            , "Ajukan penambahan cabang yang belum", "Lihat solusi terbaik dan hubungi Kami", "Pastikan Anda menggunakan versi terbaru"};
+            , "Ajukan penambahan cabang yang belum", "Ajukan promosi kerja sama Anda", "Diskusi dengan sesama merchant"
+            , "Lihat solusi terbaik dan hubungi Kami", "Pastikan Anda menggunakan versi terbaru"};
 
     //END PROFILE FRAGMENT
 

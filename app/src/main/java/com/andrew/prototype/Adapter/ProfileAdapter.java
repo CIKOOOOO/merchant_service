@@ -19,8 +19,15 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.Holder> 
     private Context context;
     private List<ProfileModel> profileModels;
 
-    public ProfileAdapter(Context context, List<ProfileModel> profileModels) {
+    public interface onClick {
+        void onSettingClick(int pos);
+    }
+
+    onClick onClick;
+
+    public ProfileAdapter(Context context, List<ProfileModel> profileModels, onClick onClick) {
         this.context = context;
+        this.onClick = onClick;
         this.profileModels = profileModels;
     }
 
@@ -32,11 +39,18 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileAdapter.Holder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Holder holder, int i) {
+    public void onBindViewHolder(@NonNull final Holder holder, int i) {
         ProfileModel profileModel = profileModels.get(i);
         Glide.with(context).load(profileModel.getIcon()).into(holder.image);
         holder.parents.setText(profileModel.getParent());
         holder.child.setText(profileModel.getChild());
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int pos = holder.getAdapterPosition();
+                onClick.onSettingClick(pos);
+            }
+        });
     }
 
     @Override
