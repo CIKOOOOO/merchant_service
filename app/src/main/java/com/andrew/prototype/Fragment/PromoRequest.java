@@ -368,14 +368,14 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.tester_button_promo:
-                etTemplateAds.setText("Promo 1 rupiah");
-                promotionTitle.setText("Promo 1 rupiah");
+                etTemplateAds.setText("Pay 1 for 2 untuk Minuman");
+                promotionTitle.setText("Pay 1 for 2 untuk Minuman");
                 txt_tgl_start.setText("24/06/2029");
                 txt_tgl_end.setText("30/06/2029");
                 txt_jam_start.setText("12:00");
                 txt_jam_end.setText("12:00");
-                etDescription.setText("Deskripsi");
-                etAddress.setText("Alamat");
+                etDescription.setText("Hai, GOJEKers! Bulet-bulet, bolong tengahe, namanya kue donat. Nah, kalo ngomongin donat, kamu pasti langsung kepikiran Dunkin Donuts! Pas banget, sekarang lagi ada Promo Dunkin Donuts dari tanggal 18 Februari sampai 16 Mei 2019! Kamu bisa dapetin cashback 20% kalo bayar pakai GO-PAY! Sebelum bayar, pastikan kamu udah install aplikasi GO-JEK dan isi saldo GO-PAY supaya bisa nikmatin untung dari promo Dunkin Donuts GO-PAY! Udah tau kan cara isi saldo GO-PAY? Gampang banget dan bisa dari mana aja lho! Liat cara isi saldo GO-PAY di sini. Jangan lupa pastikan PIN kamu sudah terpasang, ya. Lihat caranya di sini.");
+                etAddress.setText("Jl. MH Thamrin, Menara BCA");
                 etEmail.setText("clarissa.aristania001@gmail.com");
                 etPhone.setText("08971056622");
                 break;

@@ -190,17 +190,14 @@
                 android:scrollbars="none" />
 
             <Button
-                android:layout_width="wrap_content"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
                 android:layout_marginTop="10dp"
-                android:layout_marginEnd="20dp"
                 android:layout_marginBottom="10dp"
-                android:background="@drawable/rectangle_white_corner_blue"
-                android:paddingStart="30dp"
-                android:paddingEnd="30dp"
                 android:text="Keluar"
-                android:textColor="@color/blue_palette" />
+                android:textColor="@color/blue_palette"
+                android:visibility="gone" />
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>
 
