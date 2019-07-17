@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.andrew.prototype.Fragment.HomeFragment;
+import com.andrew.prototype.Fragment.Loyalty;
 import com.andrew.prototype.Fragment.MainForum;
 import com.andrew.prototype.Fragment.NewThread;
 import com.andrew.prototype.Fragment.PreviewProquest;
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         drawer = findViewById(R.id.drawer_layout);
 
-        changeFragment(new HomeFragment());
+        changeFragment(new Loyalty());
 
         drawer.addDrawerListener(this);
         burgerMenu.setOnClickListener(this);

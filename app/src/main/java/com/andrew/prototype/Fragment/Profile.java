@@ -324,6 +324,9 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
             case 4:
                 changeFragment(new MainForum());
                 break;
+            case 5:
+                changeFragment(new Loyalty());
+                break;
         }
     }
 
