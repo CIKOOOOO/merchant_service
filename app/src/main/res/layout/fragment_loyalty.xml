@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.ContentFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -42,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:background="@drawable/background_blue"
+                    android:background="@drawable/selection_background_button_2_blue"
                     android:paddingTop="20dp"
                     android:paddingBottom="20dp"
                     android:text="Leaderboard"
@@ -55,7 +56,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:background="@drawable/background_blue_2"
+                    android:background="@drawable/selection_background_button_blue"
                     android:paddingTop="20dp"
                     android:paddingBottom="20dp"
                     android:text="Daily Login"
@@ -90,12 +91,44 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:layout_marginStart="2dp"
+                    android:layout_marginStart="4dp"
                     android:layout_toEndOf="@id/image_coin_loyalty"
                     android:text="1542"
+                    android:textColor="@color/blackPalette"
                     android:textSize="17sp" />
 
+                <ImageView
+                    android:id="@+id/image_coin_now_loyalty"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginStart="50dp"
+                    android:layout_toEndOf="@id/text_amount_coin_loyalty"
+                    android:background="@drawable/ic_bronze_coin" />
 
+                <com.daimajia.numberprogressbar.NumberProgressBar
+                    android:id="@+id/progress_bar_loyalty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="10dp"
+                    android:layout_toStartOf="@id/image_coin_target_loyalty"
+                    android:layout_toEndOf="@id/image_coin_now_loyalty"
+                    app:progress_current="100"
+                    app:progress_max="100"
+                    app:progress_reached_color="#005FAF"
+                    app:progress_text_color="#005FAF"
+                    app:progress_unreached_color="#CCCCCC" />
+
+                <ImageView
+                    android:id="@+id/image_coin_target_loyalty"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/ic_silver_coin" />
             </RelativeLayout>
 
             <android.support.v7.widget.RecyclerView
