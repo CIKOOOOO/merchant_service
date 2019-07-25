@@ -108,7 +108,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         FirebaseStorage storage = FirebaseStorage.getInstance();
 
         databaseReference = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
-        storageReference = storage.getReference();
+        storageReference = storage.getReference("merchant_profile");
         mContext = v.getContext();
         prefConfig = new PrefConfig(mContext);
         scaleDrawable = DecodeBitmap.setScaleDrawable(mContext, R.drawable.placeholder);
@@ -378,20 +378,33 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         DecodeBitmap.decodeSampleBitmapFromUri(uris, imageView.getWidth(), imageView.getHeight(), mContext).compress(Bitmap.CompressFormat.JPEG, 30, baos);
         byte[] byteData = baos.toByteArray();
         final UploadTask uploadTask = storageReference.child(name).putBytes(byteData);
+        /*
+         * Data yang ada difirebase harus dihapus terlebih dahulu sebelum ditimpa oleh data baru
+         * */
         storageReference.child(name)
                 .delete()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        /*
+                         * Merupakan kondisi saat image ada dan berhasil dihapus
+                         * */
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                 storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(final Uri uri) {
+                                        /*
+                                         * Apabila data tersebut telah dihapus, maka sekarang mencari URL dr foto yang diupload
+                                         * Data merchant akan diupdate sesuai dengan URL terbaru
+                                         * */
                                         databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
+                                                /*
+                                                 * Kondisi dibawah ini akan berjalan jika value sudah berhasil diUpdate
+                                                 * */
                                                 switch (child) {
                                                     case "merchant_profile_picture":
                                                         prefConfig.insertProfilePic(uri.toString());
@@ -421,12 +434,18 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        /*
+                         * Merupakan kondisi saat image tidak ditemukan, maka langsung upload saja
+                         * */
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                 storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(final Uri uri) {
+                                        /*
+                                         * Setelah foto selesai diupload, saat ini mencari URL foto tersebut
+                                         * */
                                         databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
