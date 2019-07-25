@@ -21,16 +21,15 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="171dp">
+                android:layout_height="170dp">
 
                 <com.makeramen.roundedimageview.RoundedImageView
-                    android:id="@+id/homepic"
+                    android:id="@+id/image_background_profile"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:background="@color/cornflower_blue_palette"
                     android:scaleType="fitXY"
-                    android:src="@drawable/blank_home"
                     app:riv_border_color="#333333"
-                    app:riv_border_width="2dip"
                     app:riv_mutate_background="true" />
 
                 <LinearLayout
@@ -43,7 +42,7 @@
                         android:layout_height="wrap_content">
 
                         <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                            android:id="@+id/profilepic"
+                            android:id="@+id/image_profile_picture_profile"
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             android:layout_centerHorizontal="true"
@@ -57,18 +56,18 @@
                             app:riv_oval="true" />
 
                         <ImageButton
-                            android:id="@+id/profileadd"
+                            android:id="@+id/btn_change_picture_profile"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            android:layout_below="@id/profilepic"
-                            android:layout_alignEnd="@+id/profilepic"
+                            android:layout_below="@id/image_profile_picture_profile"
+                            android:layout_alignEnd="@+id/image_profile_picture_profile"
                             android:layout_marginTop="-50dp"
                             android:layout_marginEnd="1dp"
                             android:background="@drawable/plus" />
                     </RelativeLayout>
 
                     <ImageButton
-                        android:id="@+id/homeadd"
+                        android:id="@+id/btn_change_home_profile"
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
@@ -82,15 +81,14 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
-                android:text="@string/merchant_title"
                 android:textColor="@color/toolbar_base"
                 android:textSize="20sp" />
 
             <TextView
+                android:id="@+id/text_position_profile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Finance"
                 android:textColor="@color/iron_palette"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -123,12 +121,11 @@
                         android:textSize="16sp" />
 
                     <TextView
-                        android:id="@+id/tv_email_pofile"
+                        android:id="@+id/tv_email_profile"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:maxLines="2"
-                        android:text="andrew@gmail.com"
                         android:textColor="@color/blackPalette"
                         android:textSize="17sp" />
                 </LinearLayout>
@@ -149,11 +146,10 @@
                         android:textSize="16sp" />
 
                     <TextView
-                        android:id="@+id/mid"
+                        android:id="@+id/text_mid_profile"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
-                        android:text="@string/mid"
                         android:textColor="@color/blackPalette"
                         android:textSize="17sp" />
                 </LinearLayout>
@@ -251,5 +247,21 @@
                 android:textColor="@color/white_color"
                 android:textSize="15sp" />
         </RelativeLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frame_loading_profile"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blackPalette"
+        android:visibility="gone">
+
+        <com.developers.coolprogressviews.CircleWithArcProgress
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:arcColor="@color/blue_palette"
+            app:circleColor="@color/royal_blue_palette"
+            app:radius1="30dp" />
+
     </FrameLayout>
 </android.support.design.widget.CoordinatorLayout>

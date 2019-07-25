@@ -29,9 +29,7 @@
             android:name=".Activity.MainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:windowSoftInputMode="adjustPan|stateAlwaysHidden">
-
-        </activity>
+            android:windowSoftInputMode="adjustPan|stateAlwaysHidden"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -46,7 +44,7 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
+            android:label="@string/title_activity_maps" />
 
         <service
             android:name=".FCM.FirebaseMessageService"
@@ -63,6 +61,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Activity.LoginActivity"></activity>
     </application>
 
 </manifest>

@@ -114,7 +114,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_toStartOf="@id/image_coin_target_loyalty"
                     android:layout_toEndOf="@id/image_coin_now_loyalty"
-                    app:progress_current="100"
+                    app:progress_current="50"
                     app:progress_max="100"
                     app:progress_reached_color="#005FAF"
                     app:progress_text_color="#005FAF"
@@ -135,7 +135,6 @@
                 android:id="@+id/recycler_loyalty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
-
         </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.ContentFrameLayout>

@@ -70,7 +70,6 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
     private Context mContext;
     private FrameLayout frame_ads;
     private DatabaseReference dbRef;
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
     private StorageReference storageRef;
     private ProgressDialog progressDialog;
 
@@ -87,6 +86,8 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
 
     @SuppressLint("SetTextI18n")
     private void initVar() {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+
         mContext = v.getContext();
         storageRef = storage.getReference();
         progressDialog = new ProgressDialog(getActivity());

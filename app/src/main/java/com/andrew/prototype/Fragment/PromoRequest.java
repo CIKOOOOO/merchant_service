@@ -27,7 +27,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -61,17 +60,10 @@ import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.builder.ColorPickerClickListener;
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.text.ParseException;
@@ -300,10 +292,10 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
         txt_jam_end.setOnClickListener(this);
         tester.setOnClickListener(this);
 
-        Cursor cursor = promoSQLite.getData(prefConfig.getID());
-        Cursor cursor1 = promoStuffSQLite.getData(prefConfig.getID());
+        Cursor cursor = promoSQLite.getData(prefConfig.getMID());
+        Cursor cursor1 = promoStuffSQLite.getData(prefConfig.getMID());
         while (cursor.moveToNext()) {
-            if (cursor.getInt(0) == prefConfig.getID()) {
+            if (cursor.getInt(0) == prefConfig.getMID()) {
                 frame_template_ads.setBackgroundColor(cursor.getInt(1));
                 etTemplateAds.setText(cursor.getString(2));
                 promotionTitle.setText(cursor.getString(3));
@@ -330,7 +322,7 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
         }
 
         while (cursor1.moveToNext()) {
-            if (cursor1.getInt(1) == prefConfig.getID()) {
+            if (cursor1.getInt(1) == prefConfig.getMID()) {
                 String name = cursor1.getString(2);
                 byte[] image = cursor1.getBlob(3);
                 String value = cursor1.getString(4);
@@ -439,8 +431,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 } else {
 //                etTemplateAds.clearComposingText();
 //                etTemplateAds.setCursorVisible(false);
-                    promoSQLite.deleteAll(prefConfig.getID());
-                    promoStuffSQLite.deleteAll(prefConfig.getID());
+                    promoSQLite.deleteAll(prefConfig.getMID());
+                    promoStuffSQLite.deleteAll(prefConfig.getMID());
                     prefConfig.insertId(-1);
                     PromoTransaction promoTransaction =
                             new PromoTransaction(promoTitle, txt_tgl_start.getText().toString()
@@ -1041,8 +1033,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 public void onClick(DialogInterface dialogInterface, int i) {
                     Random random = new Random();
                     int ran = random.nextInt(10);
-                    promoSQLite.deleteAll(prefConfig.getID());
-                    promoStuffSQLite.deleteAll(prefConfig.getID());
+                    promoSQLite.deleteAll(prefConfig.getMID());
+                    promoStuffSQLite.deleteAll(prefConfig.getMID());
                     prefConfig.insertId(ran);
                     promoSQLite.insertData(ran, etTemplateAds.getText().toString(), adsTemplate
                             , promotionTitle.getText().toString(), etEmail.getText().toString()
@@ -1084,9 +1076,9 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     changeFragment(context, new Profile());
-                    if (prefConfig.getID() != -1) {
-                        promoSQLite.deleteAll(prefConfig.getID());
-                        promoStuffSQLite.deleteAll(prefConfig.getID());
+                    if (prefConfig.getMID() != -1) {
+                        promoSQLite.deleteAll(prefConfig.getMID());
+                        promoStuffSQLite.deleteAll(prefConfig.getMID());
                         prefConfig.insertId(-1);
                     }
                 }
@@ -1094,8 +1086,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
             builder.setCancelable(true);
             builder.show();
         } else {
-            promoSQLite.deleteAll(prefConfig.getID());
-            promoStuffSQLite.deleteAll(prefConfig.getID());
+            promoSQLite.deleteAll(prefConfig.getMID());
+            promoStuffSQLite.deleteAll(prefConfig.getMID());
             prefConfig.insertId(-1);
             changeFragment(context, new Profile());
         }

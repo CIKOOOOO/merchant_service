@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,10 +42,21 @@ import com.andrew.prototype.Model.ShowCase;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
+import com.andrew.prototype.Utils.PrefConfig;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.makeramen.roundedimageview.RoundedImageView;
+import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -64,14 +76,19 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
     private ImageView profilePic;
     private RoundedImageView homePic;
     private ImageView img_add_showcase, img_showcase;
-    private List<ShowCase> showCaseList;
     private AlertDialog codeAlert;
     private TextView tvError_AddShowCase;
     private EditText etInput_ShowCase;
-    private ShowcaseAdapter showcaseAdapter;
     private ScaleDrawable scaleDrawable;
     private Context mContext;
     private Activity mActivity;
+    private StorageReference storageReference;
+    private DatabaseReference databaseReference;
+    private FrameLayout frame_loading;
+
+    private List<ShowCase> showCaseList;
+    private ShowcaseAdapter showcaseAdapter;
+    private PrefConfig prefConfig;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -88,22 +105,32 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
     }
 
     private void initVar() {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
+        storageReference = storage.getReference();
         mContext = v.getContext();
+        prefConfig = new PrefConfig(mContext);
         scaleDrawable = DecodeBitmap.setScaleDrawable(mContext, R.drawable.placeholder);
         showcase_condition = false;
 
-        ImageButton profileAdd = v.findViewById(R.id.profileadd);
-        ImageButton homeAdd = v.findViewById(R.id.homeadd);
+        ImageButton profileAdd = v.findViewById(R.id.btn_change_picture_profile);
+        ImageButton homeAdd = v.findViewById(R.id.btn_change_home_profile);
         RecyclerView recyclerView = v.findViewById(R.id.recycler_profile);
         RecyclerView recycler_showcase = v.findViewById(R.id.recycler_profile_image);
         RelativeLayout relativeLayout = v.findViewById(R.id.rl_frame_main_profile);
         ImageButton file_download = v.findViewById(R.id.download_image_frame_profile);
         ImageButton btnClose = v.findViewById(R.id.btn_close_frame_profile);
+        TextView text_name = v.findViewById(R.id.tv_merchant_name_profile);
+        TextView text_position = v.findViewById(R.id.text_position_profile);
+        TextView text_email = v.findViewById(R.id.tv_email_profile);
+        TextView text_mid = v.findViewById(R.id.text_mid_profile);
 
-        profilePic = v.findViewById(R.id.profilepic);
-        homePic = v.findViewById(R.id.homepic);
+        profilePic = v.findViewById(R.id.image_profile_picture_profile);
+        homePic = v.findViewById(R.id.image_background_profile);
         frame_add_showcase = v.findViewById(R.id.picture_frame_profile);
         img_showcase = v.findViewById(R.id.image_frame_profile);
+        frame_loading = v.findViewById(R.id.frame_loading_profile);
 
         showCaseList = new ArrayList<>();
         List<ProfileModel> profileModelList = new ArrayList<>(Constant.getProfileModels());
@@ -111,6 +138,18 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         showCaseList.addAll(Constant.getShowCase());
 
         showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, this);
+
+        Picasso.get().load(prefConfig.getProfilePicture()).into(profilePic);
+        if (!prefConfig.getBackgroundPicture().equals("0")) {
+            Picasso.get().load(prefConfig.getBackgroundPicture()).into(homePic);
+        }
+
+        text_name.setText(prefConfig.getName());
+        text_position.setText(prefConfig.getPosition());
+        text_email.setText(prefConfig.getEmail());
+        text_mid.setText(prefConfig.getMID() + "");
+
+        frame_loading.getBackground().setAlpha(Constant.MAX_ALPHA);
 
         recycler_showcase.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false));
         recycler_showcase.setAdapter(showcaseAdapter);
@@ -124,12 +163,13 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         relativeLayout.setOnClickListener(this);
         btnClose.setOnClickListener(this);
         file_download.setOnClickListener(this);
+        frame_loading.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.homeadd:
+            case R.id.btn_change_home_profile:
                 if (ActivityCompat.checkSelfPermission(mActivity,
                         Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -141,7 +181,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                     startActivityForResult(Intent.createChooser(intent1, "Select Home Pic"), HOME_REQUEST_CODE);
                 }
                 break;
-            case R.id.profileadd:
+            case R.id.btn_change_picture_profile:
                 if (ActivityCompat.checkSelfPermission(mActivity,
                         Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}
@@ -257,17 +297,13 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == MainActivity.RESULT_OK) {
             if (requestCode == PROFILE_REQUEST_CODE && data.getData() != null) {
-                Uri uri = data.getData();
-                Glide.with(mContext)
-                        .load(DecodeBitmap.decodeSampleBitmapFromUri(uri, profilePic.getWidth(), profilePic.getHeight(), mContext))
-                        .placeholder(scaleDrawable)
-                        .into(profilePic);
+                final Uri uris = data.getData();
+                frame_loading.setVisibility(View.VISIBLE);
+                sendImage(uris, profilePic, "merchant_profile_picture", prefConfig.getMID() + "");
             } else if (requestCode == HOME_REQUEST_CODE && data.getData() != null) {
                 Uri uri = data.getData();
-                Glide.with(mContext)
-                        .load(DecodeBitmap.decodeSampleBitmapFromUri(uri, homePic.getWidth(), homePic.getHeight(), mContext))
-                        .placeholder(scaleDrawable)
-                        .into(homePic);
+                frame_loading.setVisibility(View.VISIBLE);
+                sendImage(uri, homePic, "merchant_background_picture", "background-picture-" + prefConfig.getMID());
             } else if (requestCode == Constant.ACTIVITY_CHOOSE_IMAGE && data.getData() != null) {
                 Uri uri = data.getData();
                 tvError_AddShowCase.setVisibility(View.GONE);
@@ -335,5 +371,90 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
         fragmentTransaction.replace(R.id.main_frame, fragment);
         fragmentTransaction.commit();
+    }
+
+    private void sendImage(final Uri uris, final ImageView imageView, final String child, final String name) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DecodeBitmap.decodeSampleBitmapFromUri(uris, imageView.getWidth(), imageView.getHeight(), mContext).compress(Bitmap.CompressFormat.JPEG, 30, baos);
+        byte[] byteData = baos.toByteArray();
+        final UploadTask uploadTask = storageReference.child(name).putBytes(byteData);
+        storageReference.child(name)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(final Uri uri) {
+                                        databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                switch (child) {
+                                                    case "merchant_profile_picture":
+                                                        prefConfig.insertProfilePic(uri.toString());
+                                                        break;
+                                                    case "merchant_background_picture":
+                                                        prefConfig.insertBackgroundPic(uri.toString());
+                                                        break;
+                                                }
+                                                Glide.with(mContext)
+                                                        .load(DecodeBitmap.decodeSampleBitmapFromUri(uris, imageView.getWidth(), imageView.getHeight(), mContext))
+                                                        .placeholder(scaleDrawable)
+                                                        .into(imageView);
+                                                frame_loading.setVisibility(View.GONE);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(final Uri uri) {
+                                        databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                switch (child) {
+                                                    case "merchant_profile_picture":
+                                                        prefConfig.insertProfilePic(uri.toString());
+                                                        break;
+                                                    case "merchant_background_picture":
+                                                        prefConfig.insertBackgroundPic(uri.toString());
+                                                        break;
+                                                }
+                                                Glide.with(mContext)
+                                                        .load(DecodeBitmap.decodeSampleBitmapFromUri(uris, imageView.getWidth(), imageView.getHeight(), mContext))
+                                                        .placeholder(scaleDrawable)
+                                                        .into(imageView);
+                                                frame_loading.setVisibility(View.GONE);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
+                    }
+                });
     }
 }

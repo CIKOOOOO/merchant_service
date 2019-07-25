@@ -26,6 +26,8 @@ public class Constant {
     public static final int ACTIVITY_CHOOSE_FILE = 105;
     public static final int ACTIVITY_TAKE_IMAGE = 106;
     public static final String DB_REFERENCE_TRANSACTION_REQUEST_PROMO = "transaction_request_promo";
+    public static final String DB_REFERENCE_MERCHANT_PROFILE = "merchant_profile";
+    public static final int MAX_ALPHA = 220;
 
 //    private static final String[] trendingTitle = {"Potret Asli Afrika Vs Anggapan Banyak Orang"
 //            , "Hacker Dalam dan Luar Negeri Ramai-ramai Serang Sistem KPU"
