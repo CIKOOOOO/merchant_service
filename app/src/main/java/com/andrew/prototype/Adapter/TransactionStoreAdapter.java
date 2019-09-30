@@ -9,12 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.andrew.prototype.Model.Store;
 import com.andrew.prototype.Model.TransactionStore;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.DecodeBitmap;
 import com.andrew.prototype.Utils.Utils;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -38,7 +36,7 @@ public class TransactionStoreAdapter extends RecyclerView.Adapter<TransactionSto
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int i) {
         TransactionStore transaction = transactions.get(i);
-        holder.tid.setText("#" + transaction.getTID());
+        holder.tid.setText("#" + transaction.getTid());
         holder.date.setText(transaction.getDate());
         holder.earning.setText("IDR " + Utils.priceFormat(transaction.getEarning()));
         DecodeBitmap.setScaledImageView(holder.bank_logo, transaction.getBank_logo(), mContext);

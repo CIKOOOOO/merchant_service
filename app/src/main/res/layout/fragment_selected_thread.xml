@@ -67,11 +67,11 @@
                     android:orientation="horizontal">
 
                     <com.makeramen.roundedimageview.RoundedImageView
+                        android:id="@+id/image_profile_selected_thread"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_margin="10dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/img3"
                         app:riv_border_color="#333333"
                         app:riv_border_width="1dip"
                         app:riv_corner_radius="20dip" />
@@ -141,7 +141,6 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="20dp"
                         android:layout_marginEnd="5dp"
-                        android:text="@string/lorem"
                         android:textColor="@color/toolbar_base" />
 
                     <android.support.v7.widget.RecyclerView
@@ -198,12 +197,14 @@
                 </LinearLayout>
 
                 <RelativeLayout
+                    android:id="@+id/relative_page_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:background="@color/blue_palette"
                     android:paddingTop="3dp"
-                    android:paddingBottom="3dp">
+                    android:paddingBottom="3dp"
+                    android:visibility="gone">
 
                     <LinearLayout
                         android:id="@+id/recycler_page_ll"
@@ -272,12 +273,14 @@
                     app:layoutManagerType="linear" />
 
                 <RelativeLayout
+                    android:id="@+id/relative_page_number2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:background="@color/blue_palette"
                     android:paddingTop="3dp"
-                    android:paddingBottom="3dp">
+                    android:paddingBottom="3dp"
+                    android:visibility="gone">
 
                     <LinearLayout
                         android:id="@+id/recycler_page_ll2"
@@ -385,7 +388,8 @@
                         android:inputType="text"
                         android:padding="5dp"
                         android:textColor="@color/blackPalette"
-                        android:textColorHint="@color/greyPalette2" />
+                        android:textColorHint="@color/greyPalette2"
+                        android:visibility="gone" />
 
                     <EditText
                         android:id="@+id/etReply_Selected"
@@ -498,6 +502,7 @@
         <RelativeLayout
             android:id="@+id/rl_frame_selected"
             android:layout_width="match_parent"
+            android:background="@android:color/transparent"
             android:layout_height="match_parent">
 
             <ImageButton
@@ -536,5 +541,20 @@
                 android:textColor="@color/white_color"
                 android:textSize="15sp" />
         </RelativeLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frame_loading_selected_thread"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blackPalette"
+        android:visibility="gone">
+
+        <com.developers.coolprogressviews.CircleWithArcProgress
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:arcColor="@color/blue_palette"
+            app:circleColor="@color/royal_blue_palette"
+            app:radius1="30dp" />
     </FrameLayout>
 </android.support.design.widget.CoordinatorLayout>

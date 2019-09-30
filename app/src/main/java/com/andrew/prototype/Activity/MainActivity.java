@@ -44,6 +44,9 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
         , View.OnClickListener, DrawerLayout.DrawerListener, BottomNavigationView.OnNavigationItemSelectedListener {
+
+    public static BottomNavigationView bottomNavigationView;
+
     private DrawerLayout drawer;
     private boolean exit = false;
 
@@ -69,13 +72,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_main);
+        bottomNavigationView = findViewById(R.id.bottom_navigation_main);
         ImageButton burgerMenu = findViewById(R.id.burgerMenu);
         ImageButton icon = findViewById(R.id.main_icon_toolbar);
 
         drawer = findViewById(R.id.drawer_layout);
 
-        changeFragment(new Loyalty());
+        changeFragment(new MainForum());
 
         drawer.addDrawerListener(this);
         burgerMenu.setOnClickListener(this);
@@ -114,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     onBackPressFragment.onBackPress(false, fragment.getContext());
                     break;
                 default:
-                    changeFragment(new MainForum());
+                    onBackPressFragment.onBackPress(false, fragment.getContext());
                     break;
             }
         } else if (fragment instanceof SelectedThread) {

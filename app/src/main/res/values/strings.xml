@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Merchant Service Apps</string>
+    <string name="app_name">Merchant Service BCA</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -19,7 +19,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="exit">Tekan tombol \'Kembali\' untuk keluar</string>
-    <string name="find_here"><i>Cari Disini . .</i></string>
+    <string name="find_here"><i>Cari disini . .</i></string>
     <string name="find_search">Klik pencarian</string>
     <string name="trending_thread" tools:ignore="Typos">Thread Populer</string>
     <string name="lorem">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
@@ -76,6 +76,7 @@
     <string name="pref_exp">exp</string>
     <string name="pref_position">position</string>
     <string name="pref_profile_picture">profile_picture</string>
+    <string name="pref_id">-1</string>
 
     <string name="menu_help">EDC Help and Support</string>
     <string name="menu_qr">QR Code</string>
@@ -84,7 +85,7 @@
     <string name="menu_forum">Merchant Forum</string>
     <string name="menu_loyalty">Merchant Loyalty</string>
 
-    <string name="mid">MID : 2001558246</string>
+    <string name="mid">mid : 2001558246</string>
     <string name="change_home_picture">Change Home Picture</string>
     <string name="change_profile_picture">Change Profile Picture</string>
     <string name="add_promo">Tambah Promo</string>
@@ -102,7 +103,7 @@
     <string name="stuff_list">List Barang</string>
     <string name="stuff_name">Nama Barang</string>
     <string name="stuff_discount">Diskon Barang</string>
-    <string name="date">Tanggal</string>
+    <string name="story_date">Tanggal</string>
     <string name="contact_information">Informasi Kontak</string>
     <string name="month">Bulan</string>
     <string name="time">Jam</string>

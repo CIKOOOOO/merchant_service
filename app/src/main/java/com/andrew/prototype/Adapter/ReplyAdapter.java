@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -33,31 +34,35 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.andrew.prototype.Activity.MainActivity;
 import com.andrew.prototype.Fragment.SelectedThread;
-import com.andrew.prototype.Model.ForumThread;
+import com.andrew.prototype.Model.Forum;
+import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.Model.Report;
 import com.andrew.prototype.Model.SyncImg;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
-import com.andrew.prototype.Utils.DecodeBitmap;
-import com.bumptech.glide.Glide;
+import com.andrew.prototype.Utils.PrefConfig;
 import com.makeramen.roundedimageview.RoundedImageView;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> implements
         ImageSyncAdapter.onImageSyncClicked {
     private static final long DELAY_ANIMATION_START = 600;
-    private List<ForumThread> list;
-    private List<SyncImg> syncImgs;
+    private List<Forum.ForumReply> list;
     private Context context;
     private Boolean check = false, newReplyIsAvailable;
     private ImageButton btnClose, btnDownload;
     private TextView merchantName;
     private ImageView imgFrame;
+    private Map<String, Merchant> merchantMap;
+    private Map<String, List<Forum.ForumImageReply>> replyImageMap;
+    private PrefConfig prefConfig;
 
-    private onAccountDelete onAccountDelete;
     private onReplyDelete onReplyDelete;
     private onEdit onEdit;
     private onReplyClick onReplyClick;
@@ -69,47 +74,50 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
         this.imgFrame = imgFrame;
     }
 
-    public void setSyncImgs(List<SyncImg> syncImgs, List<ForumThread> list) {
-        this.syncImgs = syncImgs;
+    public void setList(List<Forum.ForumReply> list, Map<String, Merchant> merchantMap, Map<String, List<Forum.ForumImageReply>> replyImageMap) {
+        this.merchantMap = merchantMap;
         this.list = list;
-        newReplyIsAvailable = true;
-        notifyDataSetChanged();
+        this.replyImageMap = replyImageMap;
     }
 
-    public void setList(List<ForumThread> list) {
-        this.list = list;
+    public void setReplyImageMap(Map<String, List<Forum.ForumImageReply>> replyImageMap) {
+        this.replyImageMap = replyImageMap;
     }
 
-    public void setSyncImgs(List<SyncImg> syncImgs) {
-        this.syncImgs = syncImgs;
+    public void setReplyLike(Forum.ForumReply reply, int pos, Map<String, List<Forum.ForumImageReply>> replyImageMap) {
+        list.set(pos, reply);
+        this.replyImageMap = replyImageMap;
+    }
+
+    public void setList(List<Forum.ForumReply> list) {
+        this.list = list;
     }
 
     public interface onReplyClick {
         void onReply(int pos);
+
+        void onReplyLike(int pos);
     }
 
     public interface onEdit {
-        void onThreadEdit(int pos, List<SyncImg> bitmap);
+        void onThreadEdit(int pos);
     }
 
     public interface onReplyDelete {
         void onDelete(int pos);
     }
 
-    public interface onAccountDelete {
-        void accountDelete(String username);
-    }
-
-    public ReplyAdapter(List<ForumThread> list, Context context, onReplyClick onReplyClick
-            , onEdit onEdit, onReplyDelete onReplyDelete, onAccountDelete onAccountDelete) {
+    public ReplyAdapter(List<Forum.ForumReply> list, Map<String, Merchant> merchantMap, Map<String, List<Forum.ForumImageReply>> replyImageMap, Context context, onReplyClick onReplyClick
+            , onEdit onEdit, onReplyDelete onReplyDelete) {
         this.list = list;
+        this.merchantMap = merchantMap;
+        this.replyImageMap = replyImageMap;
         this.onReplyDelete = onReplyDelete;
         this.onEdit = onEdit;
         this.onReplyClick = onReplyClick;
         this.context = context;
-        this.onAccountDelete = onAccountDelete;
-        syncImgs = new ArrayList<>();
         newReplyIsAvailable = false;
+        prefConfig = new PrefConfig(context);
     }
 
     @NonNull
@@ -121,29 +129,34 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
 
     @Override
     public void onBindViewHolder(@NonNull final Holder holder, int i) {
-        final ImageSyncAdapter imageSyncAdapter = new ImageSyncAdapter(context, this);
-        final ForumThread forumThread = list.get(i);
-        holder.merchant_name.setText(forumThread.getUsername());
-        holder.loc.setText(forumThread.getLocation());
-        holder.time.setText(forumThread.getDate() + " - " + forumThread.getTime() + " WIB");
-        holder.like.setText(forumThread.getLike() + "");
-        holder.content.setText(forumThread.getContent());
+        final Forum.ForumReply forumThread = list.get(i);
+        final Merchant merchant = merchantMap.get(forumThread.getMid());
+        final int position = holder.getAdapterPosition();
+        if (merchant != null) {
+            holder.merchant_name.setText(merchant.getMerchant_name());
+            holder.loc.setText(merchant.getMerchant_location());
+            Picasso.get().load(merchant.getMerchant_profile_picture()).into(holder.roundedImageView);
+        }
+
+        holder.time.setText(forumThread.getForum_reply_date() + " WIB");
+        holder.like.setText(forumThread.getForum_like_amount() + "");
+        holder.content.setText(forumThread.getForum_content());
+
+        ImageSyncAdapter imageSyncAdapter;
+
+        if (replyImageMap.containsKey(forumThread.getFrid())) {
+            imageSyncAdapter = new ImageSyncAdapter(replyImageMap.get(forumThread.getFrid()), context, this);
+        } else {
+            imageSyncAdapter = new ImageSyncAdapter(new ArrayList<Forum.ForumImageReply>(), context, this);
+        }
+
+        holder.recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
+        holder.recyclerView.setAdapter(imageSyncAdapter);
 
         if (forumThread.isLike()) {
             holder.smile.setBackground(context.getResources().getDrawable(R.drawable.smile_press));
         } else
             holder.smile.setBackground(context.getResources().getDrawable(R.drawable.smile));
-
-        DecodeBitmap.setScaledRoundedImageView(holder.roundedImageView, forumThread.getProfile_picture(), context);
-
-        for (SyncImg syncImg : syncImgs) {
-            if (forumThread.getUsername().toLowerCase().trim().equals(syncImg.getName().trim().toLowerCase())) {
-                imageSyncAdapter.addSyncImgs(syncImg);
-            }
-        }
-
-        holder.recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
-        holder.recyclerView.setAdapter(imageSyncAdapter);
 
         holder.reply.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,7 +170,9 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
             public void onClick(View view) {
                 Context wrap = new ContextThemeWrapper(context, R.style.PopupMenu);
                 PopupMenu popupMenu = new PopupMenu(wrap, holder.option_menu);
-                popupMenu.inflate(R.menu.recycler_option_menu);
+                if (prefConfig.getMID().equals(merchant.getMid())) {
+                    popupMenu.inflate(R.menu.option_menu_forum_owner);
+                } else popupMenu.inflate(R.menu.option_menu_forum_general);
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
@@ -168,20 +183,19 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
                                 deleteAnimation(holder.itemView);
                                 Toast.makeText(context, context.getResources().getString(R.string.thread_deleted), Toast.LENGTH_SHORT).show();
                                 break;
-                            case R.id.menu_dont_show:
-                                onAccountDelete.accountDelete(forumThread.getUsername());
-                                Toast.makeText(context, context.getResources().getString(R.string.thread_not_appear), Toast.LENGTH_SHORT).show();
-                                break;
+//                            case R.id.menu_dont_show:
+////                                onAccountDelete.accountDelete(forumThread.getUsername());
+//                                Toast.makeText(context, context.getResources().getString(R.string.thread_not_appear), Toast.LENGTH_SHORT).show();
+//                                break;
                             case R.id.menu_edit:
-                                onEdit.onThreadEdit(SelectedThread.PAGE_NUMBER_STATE * 5 + holder.getAdapterPosition()
-                                        , getSyncImgs(forumThread.getUsername()));
+                                onEdit.onThreadEdit(SelectedThread.PAGE_NUMBER_STATE * 5 + holder.getAdapterPosition());
                                 break;
-                            case R.id.menu_hide:
-                                int position_hide = SelectedThread.PAGE_NUMBER_STATE * 5 + holder.getAdapterPosition();
-                                onReplyDelete.onDelete(position_hide);
-                                deleteAnimation(holder.itemView);
-                                Toast.makeText(context, context.getResources().getString(R.string.thread_hidden), Toast.LENGTH_SHORT).show();
-                                break;
+//                            case R.id.menu_hide:
+//                                int position_hide = SelectedThread.PAGE_NUMBER_STATE * 5 + holder.getAdapterPosition();
+//                                onReplyDelete.onDelete(position_hide);
+//                                deleteAnimation(holder.itemView);
+//                                Toast.makeText(context, context.getResources().getString(R.string.thread_hidden), Toast.LENGTH_SHORT).show();
+//                                break;
                             case R.id.menu_report:
                                 final List<Report> reportList = new ArrayList<>();
                                 reportList.addAll(Constant.getReport());
@@ -206,8 +220,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
                                 codeBuilder.setView(codeView);
                                 final AlertDialog codeAlert = codeBuilder.create();
 
-                                name.setText(forumThread.getUsername());
-                                thread.setText(forumThread.getTitle());
+                                name.setText(merchant.getMerchant_name());
+//                                thread.setText(forumThread.getTitle());
 
                                 recyclerView.setAdapter(reportAdapter);
 
@@ -272,18 +286,19 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
         holder.smile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (forumThread.isLike()) {
-                    forumThread.setLikeAmount(forumThread.getLike() - 1);
-                    forumThread.setLike(false);
-                } else {
-                    forumThread.setLike(true);
-                    forumThread.setLikeAmount(forumThread.getLike() + 1);
-                }
-                notifyDataSetChanged();
+                onReplyClick.onReplyLike(position);
+//                if (forumThread.isLike()) {
+//                    forumThread.setForum_like_amount(forumThread.getForum_like_amount() - 1);
+//                    forumThread.setLike(false);
+//                } else {
+//                    forumThread.setLike(true);
+//                    forumThread.setForum_like_amount(forumThread.getForum_like_amount() + 1);
+//                }
+//                notifyDataSetChanged();
             }
         });
 
-        setAnimation(holder.itemView, i, holder.linearLayout);
+        setAnimation(holder.itemView, position, holder.linearLayout);
     }
 
     @Override
@@ -315,14 +330,14 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
         }
     }
 
-    private void hideAccount(String username) {
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getUsername().toLowerCase().trim().equals(username.toLowerCase().trim())) {
-                int position = SelectedThread.PAGE_NUMBER_STATE * 5 + i;
-                onReplyDelete.onDelete(position);
-            }
-        }
-    }
+//    private void hideAccount(String username) {
+//        for (int i = 0; i < list.size(); i++) {
+//            if (list.get(i).getUsername().toLowerCase().trim().equals(username.toLowerCase().trim())) {
+//                int position = SelectedThread.PAGE_NUMBER_STATE * 5 + i;
+//                onReplyDelete.onDelete(position);
+//            }
+//        }
+//    }
 
     private boolean isChecked(List<Report> list) {
         for (Report reportIsChecked : list) {
@@ -331,20 +346,10 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
         return false;
     }
 
-    private List<SyncImg> getSyncImgs(String name) {
-        List<SyncImg> syncImgs = new ArrayList<>();
-        for (SyncImg syncImg : this.syncImgs) {
-            if (name.toLowerCase().trim().equals(syncImg.getName().trim().toLowerCase())) {
-                syncImgs.add(syncImg);
-            }
-        }
-        return syncImgs;
-    }
-
-    private void downloadImage(SyncImg syncImg) {
+    private void downloadImage(Forum.ForumImageReply reply) {
         Toast.makeText(context, context.getResources().getString(R.string.download_success), Toast.LENGTH_SHORT).show();
-        MediaStore.Images.Media.insertImage(context.getContentResolver(), syncImg.getImg()
-                , syncImg.getName(), "");
+        MediaStore.Images.Media.insertImage(context.getContentResolver(), ((BitmapDrawable) imgFrame.getDrawable()).getBitmap()
+                , reply.getImage_name(), "");
     }
 
     private void deleteAnimation(View v) {
@@ -384,14 +389,16 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
     }
 
     @Override
-    public void imageIsClicked(final SyncImg syncImg) {
+    public void imageIsClicked(final Forum.ForumImageReply reply) {
         SelectedThread.frameLayout.setVisibility(View.VISIBLE);
         SelectedThread.frameIsVisible = true;
+        MainActivity.bottomNavigationView.setVisibility(View.GONE);
 
         SelectedThread.frameLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 SelectedThread.frameIsVisible = false;
+                MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
                 SelectedThread.frameLayout.setVisibility(View.GONE);
             }
         });
@@ -400,6 +407,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
             @Override
             public void onClick(View view) {
                 SelectedThread.frameIsVisible = false;
+                MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
                 SelectedThread.frameLayout.setVisibility(View.GONE);
             }
         });
@@ -414,16 +422,13 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
                                 Constant.PERMISSION_WRITE_EXTERNAL);
                     }
                 } else {
-                    downloadImage(syncImg);
+                    downloadImage(reply);
                 }
             }
         });
 
-        Glide.with(context)
-                .load(DecodeBitmap.compressBitmap(syncImg.getImg()))
-                .placeholder(DecodeBitmap.setScaleDrawable(context, R.drawable.placeholder))
-                .into(imgFrame);
+        Picasso.get().load(reply.getImage_url()).into(imgFrame);
 
-        merchantName.setText("Merchant Name : " + syncImg.getName());
+//        merchantName.setText("Merchant Name : " + mer);
     }
 }

@@ -1,30 +1,21 @@
 package com.andrew.prototype.Fragment;
 
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.andrew.prototype.Adapter.PromoAdapter;
 import com.andrew.prototype.Adapter.PromoStatusAdapter;
@@ -33,14 +24,12 @@ import com.andrew.prototype.Model.Product;
 import com.andrew.prototype.Model.PromoTransaction;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
-import com.andrew.prototype.Utils.DecodeBitmap;
-import com.bumptech.glide.Glide;
+import com.andrew.prototype.Utils.PrefConfig;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -58,9 +47,11 @@ public class StatusPromo extends Fragment implements StatusPromoAdapter.statusOn
 
     private View v;
     private Context mContext;
-    private List<PromoTransaction> promoTransactions;
     private StatusPromoAdapter statusPromoAdapter;
+    private PrefConfig prefConfig;
+
     private HashMap<String, List<Product>> map;
+    private List<PromoTransaction> promoTransactions;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -73,8 +64,8 @@ public class StatusPromo extends Fragment implements StatusPromoAdapter.statusOn
     private void initVar() {
         isBottomSheetVisible = false;
         mContext = v.getContext();
-        String MID = "299";
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_TRANSACTION_REQUEST_PROMO + "/" + MID);
+        prefConfig = new PrefConfig(mContext);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_TRANSACTION_REQUEST_PROMO + "/" + prefConfig.getMID());
 
         RecyclerView recyclerView = v.findViewById(R.id.recycler_status_promo);
 
@@ -116,9 +107,9 @@ public class StatusPromo extends Fragment implements StatusPromoAdapter.statusOn
 
         @Override
         public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            String TID = dataSnapshot.child("TID").getValue().toString();
+            String TID = dataSnapshot.child("tid").getValue().toString();
             for (int i = 0; i < promoTransactions.size(); i++) {
-                if (promoTransactions.get(i).getTID().equals(TID)) {
+                if (promoTransactions.get(i).getTid().equals(TID)) {
                     statusPromoAdapter.setStatusPromo(promoTransactions.get(i), i);
 //                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(mContext);
 //                    NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, "channel")
@@ -158,7 +149,7 @@ public class StatusPromo extends Fragment implements StatusPromoAdapter.statusOn
             statusPromoAdapter.notifyDataSetChanged();
             for (DataSnapshot s : dataSnapshot.getChildren()) {
                 // HERE TO GET ALL DATA FROM TRANSACTION
-                String TID = s.child("TID").getValue().toString();
+                String TID = s.child("tid").getValue().toString();
                 String dateEnd = s.child("dateEnd").getValue().toString();
                 String dateStart = s.child("dateStart").getValue().toString();
                 String desc = s.child("description").getValue().toString();
@@ -282,8 +273,8 @@ public class StatusPromo extends Fragment implements StatusPromoAdapter.statusOn
         Picasso.get().load(promoTransaction.getImageURLForAds()).into(image_ads);
 
         List<Product> products = new ArrayList<>();
-        if (map.get(promoTransaction.getTID()) != null)
-            products.addAll(Objects.requireNonNull(map.get(promoTransaction.getTID())));
+        if (map.get(promoTransaction.getTid()) != null)
+            products.addAll(Objects.requireNonNull(map.get(promoTransaction.getTid())));
         recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         recyclerView.setAdapter(new PromoStatusAdapter(mContext, products, promoTransaction.getPromotionCategory()));
     }

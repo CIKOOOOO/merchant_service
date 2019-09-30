@@ -9,28 +9,25 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
-import com.andrew.prototype.Model.ShowCase;
+import com.andrew.prototype.Model.MerchantStory;
 import com.andrew.prototype.R;
-import com.andrew.prototype.Utils.Constant;
-import com.andrew.prototype.Utils.DecodeBitmap;
-import com.bumptech.glide.Glide;
 import com.makeramen.roundedimageview.RoundedImageView;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 public class ShowcaseAdapter extends RecyclerView.Adapter<ShowcaseAdapter.ViewHolder> {
     private Context context;
     private int position;
-    private List<ShowCase> showCases;
+    private List<MerchantStory> showCases;
     private boolean check;
 
     public interface onImageClickListener {
         void onImageClick(Context context, int pos);
     }
 
-    public void setShowCases(List<ShowCase> showCases) {
+    public void setShowCases(List<MerchantStory> showCases) {
         this.showCases = showCases;
-        notifyDataSetChanged();
     }
 
     public int getAdapterPosition() {
@@ -39,7 +36,7 @@ public class ShowcaseAdapter extends RecyclerView.Adapter<ShowcaseAdapter.ViewHo
 
     private onImageClickListener onImageClickListener;
 
-    public ShowcaseAdapter(Context context, List<ShowCase> showCases, boolean check, onImageClickListener onItemClickListener) {
+    public ShowcaseAdapter(Context context, List<MerchantStory> showCases, boolean check, onImageClickListener onItemClickListener) {
         this.context = context;
         this.onImageClickListener = onItemClickListener;
         this.showCases = showCases;
@@ -79,18 +76,19 @@ public class ShowcaseAdapter extends RecyclerView.Adapter<ShowcaseAdapter.ViewHo
             viewHolder.imageButton.setVisibility(View.VISIBLE);
             viewHolder.imageView.setVisibility(View.GONE);
         } else {
-            if (showCases.get(i).getImage() != 0) {
-                DecodeBitmap.setScaledImageView(viewHolder.imageView, showCases.get(i).getImage(), context);
+            Picasso.get().load(showCases.get(i - 1).getStory_picture()).into(viewHolder.imageView);
+//            if (showCases.get(i).getImage() != 0) {
+//                DecodeBitmap.setScaledImageView(viewHolder.imageView, showCases.get(i).getImage(), context);
+////                Glide.with(context)
+////                        .load(showCases.get(i).getImage())
+////                        .placeholder(context.getDrawable(R.drawable.placeholder))
+////                        .into(viewHolder.imageView);
+//            } else {
 //                Glide.with(context)
-//                        .load(showCases.get(i).getImage())
-//                        .placeholder(context.getDrawable(R.drawable.placeholder))
+//                        .load(DecodeBitmap.compressBitmap(showCases.get(i).getImgBitmap()))
+//                        .placeholder(DecodeBitmap.setScaleDrawable(context, R.drawable.placeholder))
 //                        .into(viewHolder.imageView);
-            } else {
-                Glide.with(context)
-                        .load(DecodeBitmap.compressBitmap(showCases.get(i).getImgBitmap()))
-                        .placeholder(DecodeBitmap.setScaleDrawable(context, R.drawable.placeholder))
-                        .into(viewHolder.imageView);
-            }
+//            }
             viewHolder.frameLayout.setVisibility(View.GONE);
             viewHolder.imageButton.setVisibility(View.GONE);
             viewHolder.imageView.setVisibility(View.VISIBLE);
@@ -99,7 +97,7 @@ public class ShowcaseAdapter extends RecyclerView.Adapter<ShowcaseAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return showCases.size();
+        return showCases.size() + 1;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

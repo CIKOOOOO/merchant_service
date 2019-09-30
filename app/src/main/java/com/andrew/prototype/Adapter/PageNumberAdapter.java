@@ -33,6 +33,7 @@ public class PageNumberAdapter extends RecyclerView.Adapter<PageNumberAdapter.Ho
 
     public void setPageList(int pageList) {
         this.pageList = pageList;
+
         notifyDataSetChanged();
     }
 

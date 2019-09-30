@@ -21,70 +21,79 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content">
+
+                <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/recycler_profile_main_forum"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/blank_profile"
+                    android:scaleType="centerCrop"
+                    app:riv_border_color="#333333"
+                    app:riv_corner_radius="30dip"
+                    app:riv_mutate_background="true"
+                    app:riv_oval="true" />
 
                 <TextView
-                    android:id="@+id/main_forum_thread_title"
-                    android:layout_width="0dp"
+                    android:id="@+id/main_forum_thread_username"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
                     android:layout_marginTop="7dp"
                     android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
+                    android:layout_toEndOf="@id/recycler_profile_main_forum"
+                    android:ellipsize="end"
+                    android:maxLines="2"
                     android:textColor="@color/toolbar_base"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textSize="18sp" />
 
-                <android.support.constraint.ConstraintLayout
+                <TextView
+                    android:id="@+id/recycler_date_main_forum"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="20dp">
+                    android:layout_below="@id/main_forum_thread_username"
+                    android:layout_marginStart="4dp"
+                    android:layout_toEndOf="@id/recycler_profile_main_forum"
+                    android:textColor="@color/toolbar_base"
+                    android:textSize="12sp" />
 
-                    <TextView
-                        android:id="@+id/main_forum_thread_date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:textColor="@color/toolbar_base"
-                        app:layout_constraintBottom_toTopOf="@+id/main_forum_thread_clock"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_bias="1.0" />
-
-                    <TextView
-                        android:id="@+id/main_forum_thread_clock"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="28dp"
-                        android:textAlignment="textEnd"
-                        android:textColor="@color/toolbar_base"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </android.support.constraint.ConstraintLayout>
-            </LinearLayout>
+                <TextView
+                    android:id="@+id/recycler_time_main_forum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/main_forum_thread_username"
+                    android:layout_marginStart="5dp"
+                    android:layout_toEndOf="@id/recycler_date_main_forum"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/toolbar_base"
+                    android:textSize="12sp" />
+            </RelativeLayout>
 
             <TextView
-                android:id="@+id/main_forum_thread_username"
+                android:id="@+id/recycler_title_main_forum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
                 android:textColor="@color/toolbar_base"
-                android:textSize="17sp" />
+                android:textSize="17sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/main_forum_thread_content"
+                android:id="@+id/recycler_content_main_forum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="@string/lorem"
+                android:ellipsize="end"
+                android:maxLines="3"
                 android:textAlignment="textStart"
                 android:textColor="@color/toolbar_base" />
-
-
         </LinearLayout>
     </com.andexert.library.RippleView>
 
@@ -93,7 +102,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/ripple_main_forum"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp">
 
         <TextView
@@ -110,7 +118,8 @@
             android:paddingBottom="4dp"
             android:textAlignment="textEnd"
             android:textColor="@color/white_color"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/main_forum_thread_smile"
@@ -119,7 +128,8 @@
             android:layout_centerVertical="true"
             android:layout_marginEnd="-20dp"
             android:layout_toStartOf="@id/main_forum_thread_amount_like"
-            android:background="@drawable/smile" />
+            android:background="@drawable/smile"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/main_forum_thread_reply"
@@ -128,26 +138,19 @@
             android:layout_height="35dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="22dp"
+            android:layout_marginEnd="15dp"
             android:background="@drawable/background_reply"
             android:text="@string/reply"
             android:textColor="@color/white_color" />
     </RelativeLayout>
 
-    <com.andexert.library.RippleView
+    <ImageButton
+        android:id="@+id/main_forum_thread_more"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:rv_alpha="200">
-
-        <ImageButton
-            android:id="@+id/main_forum_thread_more"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="5dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_more_vert" />
-    </com.andexert.library.RippleView>
-
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="3dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_more_vert" />
 </RelativeLayout>

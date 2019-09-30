@@ -7,12 +7,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -26,12 +30,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -39,22 +45,46 @@ import android.widget.Toast;
 
 import com.andrew.prototype.Activity.MainActivity;
 import com.andrew.prototype.Adapter.ImagePickerAdapter;
+import com.andrew.prototype.Adapter.PromoAdapter;
+import com.andrew.prototype.Model.Forum;
 import com.andrew.prototype.Model.ForumThread;
 import com.andrew.prototype.Model.ImagePicker;
+import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.Model.SyncImg;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
+import com.andrew.prototype.Utils.PrefConfig;
+import com.andrew.prototype.Utils.Utils;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.makeramen.roundedimageview.RoundedImageView;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,21 +96,33 @@ public class NewThread extends Fragment implements View.OnClickListener
     public static final String EDIT_THREAD_SELECTED = "EDIT_THREAD_SELECTED";
     public static final String EDIT_THREAD_REPLY = "EDIT_THREAD_REPLY";
     public static final String EDIT_THREAD_REPLY_BACK = "EDIT_THREAD_REPLY_BACK";
+    public static final String EDIT_THREAD_MERCHANT = "EDIT_THREAD_MERCHANT";
     public static final String EDIT_THREAD_REPLY_BACK_LIST = "EDIT_THREAD_REPLY_BACK_LIST";
+
+    private static final String TAG = NewThread.class.getSimpleName();
 
     public static String THREAD_CONDITION;
 
-    private static ForumThread forumThread, thread;
+    private static ForumThread thread;
+    private static PrefConfig prefConfig;
+    private static Forum forum;
+    private static Forum.ForumReply forumReply;
 
     private View v;
     private RecyclerView recyclerView;
     private EditText title, content;
-    private List<ImagePicker> imageList;
     private ImagePickerAdapter imagePickerAdapter;
     private TextView error_content, error_title;
     private AlertDialog codeAlert;
     private Context mContext;
     private Activity mActivity;
+    private DatabaseReference dbRef;
+    private StorageReference storageReference, strRef;
+    private FrameLayout frame_loading;
+    private Merchant merchant;
+
+    private List<ImagePicker> imageList;
+    private List<Forum.ForumImage> forumImageList;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -100,6 +142,10 @@ public class NewThread extends Fragment implements View.OnClickListener
     private void initVar() {
         THREAD_CONDITION = "";
         mContext = v.getContext();
+        prefConfig = new PrefConfig(mContext);
+        dbRef = FirebaseDatabase.getInstance().getReference();
+        storageReference = FirebaseStorage.getInstance().getReference(Constant.DB_REFERENCE_FORUM_IMAGE);
+        strRef = FirebaseStorage.getInstance().getReference(Constant.DB_REFERENCE_FORUM_IMAGE_REPLY);
 
         TextView tvTitle = v.findViewById(R.id.title_new_thread);
         TextView title_only = v.findViewById(R.id.tvTitle_NewThread);
@@ -113,49 +159,128 @@ public class NewThread extends Fragment implements View.OnClickListener
         content = v.findViewById(R.id.etContent_NewThread);
         error_content = v.findViewById(R.id.show_error_content_new_thread);
         error_title = v.findViewById(R.id.show_error_title_new_thread);
+        frame_loading = v.findViewById(R.id.frame_loading_new_thread);
 
         imageList = new ArrayList<>();
+        forumImageList = new ArrayList<>();
 
         setRecyclerView();
+        frame_loading.getBackground().setAlpha(Constant.MAX_ALPHA);
 
         submit.setOnClickListener(this);
         photo.setOnClickListener(this);
-        file.setOnClickListener(this);
+//        it will appear when we know how to upload pdf file to firebase storage
+//        file.setOnClickListener(this);
         camera.setOnClickListener(this);
+        frame_loading.setOnClickListener(this);
         content.setOnTouchListener(this);
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            if (bundle.getParcelable(EDIT_THREAD) != null) {
-                forumThread = bundle.getParcelable(EDIT_THREAD);
-                if (forumThread != null)
-                    content.setText(forumThread.getContent());
-                imageList.addAll(Constant.getImage());
-            } else if (bundle.getParcelable(EDIT_THREAD_SELECTED) != null) {
-                forumThread = bundle.getParcelable(EDIT_THREAD_SELECTED);
-                THREAD_CONDITION = EDIT_THREAD_SELECTED;
-                if (forumThread != null)
-                    content.setText(forumThread.getContent());
-                imageList.addAll(Constant.getImage());
+            if (bundle.getParcelable(EDIT_THREAD) != null || bundle.getParcelable(EDIT_THREAD_SELECTED) != null) {
+                if (bundle.getParcelable(EDIT_THREAD) != null) {
+                    THREAD_CONDITION = EDIT_THREAD;
+                } else if (bundle.getParcelable(EDIT_THREAD_SELECTED) != null) {
+                    THREAD_CONDITION = EDIT_THREAD_SELECTED;
+                }
+                frame_loading.setVisibility(View.VISIBLE);
+                forum = bundle.getParcelable(THREAD_CONDITION);
+                if (forum != null) {
+                    title.setText(forum.getForum_title());
+                    content.setText(forum.getForum_content());
+
+                    dbRef.child(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    /*
+                                     * Harus menggunakan single value event listener, agar saat diupload data tidak refresh
+                                     * */
+                                    forumImageList.clear();
+                                    imageList.clear();
+                                    for (final DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        forumImageList.add(snapshot.getValue(Forum.ForumImage.class));
+                                        Picasso.get().load(snapshot.child("image_url").getValue().toString()).into(new Target() {
+                                            @Override
+                                            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                                                imageList.add(new ImagePicker(bitmap, ImagePickerAdapter.STATES
+                                                        , snapshot.child("image_name").getValue().toString()));
+                                            }
+
+                                            @Override
+                                            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+                                            }
+
+                                            @Override
+                                            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                                            }
+                                        });
+                                    }
+                                    if (imageList.size() > 0) {
+                                        imagePickerAdapter.setImageList(imageList);
+                                        imagePickerAdapter.notifyDataSetChanged();
+                                    }
+                                    frame_loading.setVisibility(View.GONE);
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                }
             } else if (bundle.getParcelable(EDIT_THREAD_REPLY) != null) {
+                THREAD_CONDITION = EDIT_THREAD_REPLY;
                 title.setVisibility(View.GONE);
                 title_only.setVisibility(View.GONE);
-                thread = bundle.getParcelable(EDIT_THREAD_REPLY);
-                forumThread = bundle.getParcelable(EDIT_THREAD_REPLY_BACK);
-                THREAD_CONDITION = EDIT_THREAD_REPLY;
-                content.setText(thread.getContent());
-                if (bundle.getParcelableArrayList(EDIT_THREAD_REPLY_BACK_LIST) != null) {
-                    List<SyncImg> syncImgs = bundle.getParcelableArrayList(EDIT_THREAD_REPLY_BACK_LIST);
-                    if (syncImgs != null)
-                        for (int i = 0; i < syncImgs.size(); i++) {
-                            SyncImg syncImg = syncImgs.get(i);
-                            imageList.add(new ImagePicker(syncImg.getImg(), "IMG", syncImg.getFileName()));
-                        }
-                }
+                forumReply = bundle.getParcelable(EDIT_THREAD_REPLY);
+                forum = bundle.getParcelable(EDIT_THREAD_REPLY_BACK);
+                merchant = bundle.getParcelable(EDIT_THREAD_MERCHANT);
+                content.setText(forumReply.getForum_content());
+                dbRef.child(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/"
+                        + Constant.DB_REFERENCE_FORUM_REPLY + "/" + forumReply.getFrid() + "/"
+                        + Constant.DB_REFERENCE_FORUM_IMAGE_REPLY)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                forumImageList.clear();
+                                imageList.clear();
+                                for (final DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    forumImageList.add(snapshot.getValue(Forum.ForumImage.class));
+                                    Picasso.get().load(snapshot.child("image_url").getValue().toString()).into(new Target() {
+                                        @Override
+                                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                                            imageList.add(new ImagePicker(bitmap, ImagePickerAdapter.STATES
+                                                    , snapshot.child("image_name").getValue().toString()));
+                                        }
+
+                                        @Override
+                                        public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+                                        }
+
+                                        @Override
+                                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                                        }
+                                    });
+                                }
+                                if (imageList.size() > 0) {
+                                    imagePickerAdapter.setImageList(imageList);
+                                    imagePickerAdapter.notifyDataSetChanged();
+                                }
+                                frame_loading.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
             }
             tvTitle.setText(mContext.getResources().getString(R.string.edit_thread));
-            title.setText(forumThread.getTitle());
-            imagePickerAdapter.setImageList(imageList);
         }
     }
 
@@ -184,28 +309,33 @@ public class NewThread extends Fragment implements View.OnClickListener
 
         scrollView.smoothScrollTo(0, 0);
 
-        if (!THREAD_CONDITION.equals(EDIT_THREAD) && !THREAD_CONDITION.isEmpty()) {
-            if (THREAD_CONDITION.equals(EDIT_THREAD_SELECTED)) {
-                forumThread.setTitle(this.title.getText().toString());
-                forumThread.setContent(this.content.getText().toString());
-                user.setText(forumThread.getUsername());
-                loc.setText(forumThread.getLocation());
-            } else {
-                title.setVisibility(View.GONE);
-                time.setVisibility(View.GONE);
-                DecodeBitmap.setScaledImageView(imageView, thread.getProfile_picture(), mContext);
-//                Glide.with(mContext)
-//                        .load(thread.getProfile_picture())
-//                        .placeholder(mContext.getDrawable(R.drawable.placeholder))
-//                        .into(imageView);
-                user.setText(thread.getUsername());
-                loc.setText(thread.getLocation());
-            }
-        } else if (THREAD_CONDITION.equals(EDIT_THREAD)) {
-            forumThread.setContent(this.content.getText().toString());
-            user.setText(forumThread.getUsername());
-            loc.setText(forumThread.getLocation());
-        }
+//        if (!THREAD_CONDITION.equals(EDIT_THREAD) && !THREAD_CONDITION.isEmpty()) {
+//            if (THREAD_CONDITION.equals(EDIT_THREAD_SELECTED)) {
+//                forumThread.setTitle(this.title.getText().toString());
+//                forumThread.setContent(this.content.getText().toString());
+//                user.setText(forumThread.getUsername());
+//                loc.setText(forumThread.getLocation());
+//            } else {
+//                title.setVisibility(View.GONE);
+//                time.setVisibility(View.GONE);
+////                DecodeBitmap.setScaledImageView(imageView, thread.getProfile_picture(), mContext);
+////                Glide.with(mContext)
+////                        .load(thread.getProfile_picture())
+////                        .placeholder(mContext.getDrawable(R.drawable.placeholder))
+////                        .into(imageView);
+//                user.setText(thread.getUsername());
+//                loc.setText(thread.getLocation());
+//            }
+//        } else if (THREAD_CONDITION.equals(EDIT_THREAD)) {
+//            forumThread.setContent(this.content.getText().toString());
+//            user.setText(forumThread.getUsername());
+//            loc.setText(forumThread.getLocation());
+//        }
+
+        user.setText(prefConfig.getName());
+        loc.setText(prefConfig.getLocation());
+
+        Picasso.get().load(prefConfig.getProfilePicture()).into(imageView);
 
         title.setText(this.title.getText().toString());
         content.setText(this.content.getText().toString());
@@ -232,22 +362,130 @@ public class NewThread extends Fragment implements View.OnClickListener
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btnSubmit_NewThread:
-                String titles = title.getText().toString();
-                String contents = content.getText().toString();
+                final String titles = title.getText().toString();
+                final String contents = content.getText().toString();
 
                 title.setBackground(getResources().getDrawable(R.drawable.background_edit_text));
                 content.setBackground(getResources().getDrawable(R.drawable.background_edit_text));
                 error_content.setVisibility(View.GONE);
                 error_title.setVisibility(View.GONE);
 
-                if (titles.isEmpty()) {
+                if (titles.isEmpty() && !THREAD_CONDITION.equals(EDIT_THREAD_REPLY)) {
                     error_title.setVisibility(View.VISIBLE);
                     title.setBackground(getResources().getDrawable(R.drawable.background_edit_text_error));
                 } else if (contents.isEmpty()) {
                     error_content.setVisibility(View.VISIBLE);
                     content.setBackground(getResources().getDrawable(R.drawable.background_edit_text_error));
                 } else {
-                    setPreview();
+                    if (THREAD_CONDITION.equals(EDIT_THREAD_REPLY)) {
+                        frame_loading.setVisibility(View.VISIBLE);
+                        Map<String, Object> map = new HashMap<>();
+                        if (imageList.size() == 0) {
+                            if (forumImageList.size() > 0) {
+                                for (int i = 0; i < forumImageList.size(); i++) {
+                                    storageReference.child(forumImageList.get(i).getImage_name()).delete();
+                                }
+                                dbRef.child(Constant.DB_REFERENCE_FORUM)
+                                        .child(forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_REPLY + "/"
+                                                + forumReply.getFrid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE_REPLY)
+                                        .removeValue();
+                            }
+                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_reply/" + forumReply.getFrid() + "/forum_content", content.getText().toString());
+                            dbRef.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    SelectedThread selectedThread = new SelectedThread();
+
+                                    AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                    Bundle bundle = new Bundle();
+                                    bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
+                                    bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                    fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                    fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                    selectedThread.setArguments(bundle);
+                                    fragmentTransaction.commit();
+                                    Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        } else {
+                            final String key = dbRef.push().getKey();
+                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_reply/" + forumReply.getFrid() + "/forum_content", content.getText().toString());
+                            for (int i = 0; i < imageList.size(); i++) {
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                imageList.get(i).getImage_bitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
+                                byte[] byteData = baos.toByteArray();
+
+                                Random random = new Random();
+                                final int ran = random.nextInt(10000);
+                                final String imgName = "forum-reply-" + prefConfig.getMID() + "-" + key + "-" + ran;
+
+                                UploadTask uploadTask = strRef.child(imgName).putBytes(byteData);
+
+                                final int finalI = i;
+                                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        strRef.child(imgName).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                String frid = dbRef.child(Constant.DB_REFERENCE_FORUM_REPLY).push().getKey();
+
+                                                HashMap<String, String> imgMap = new HashMap<>();
+                                                imgMap.put("image_name", imgName);
+                                                imgMap.put("image_url", uri.toString());
+                                                imgMap.put("frid", frid);
+
+                                                dbRef.child(Constant.DB_REFERENCE_FORUM + "/"
+                                                        + forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_REPLY
+                                                        + "/" + key).setValue(imgMap)
+                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                if (finalI == imageList.size() - 1) {
+                                                                    Forum forums = new Forum(key, forum.getMid()
+                                                                            , content.getText().toString(), getDate()
+                                                                            , title.getText().toString(), forum.getForum_like(), forum.getView_count(), forum.isLike());
+                                                                    SelectedThread selectedThread = new SelectedThread();
+
+                                                                    AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                                                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                                                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                                                    Bundle bundle = new Bundle();
+                                                                    bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forums);
+                                                                    bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                                                    /*
+                                                                     * kita harus tambah posisi si reply thread yang di edit sebelumnya
+                                                                     * jadi kita bisa direct ke replynya user
+                                                                     * */
+
+                                                                    fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                                                    fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                                                    selectedThread.setArguments(bundle);
+                                                                    fragmentTransaction.commit();
+                                                                    frame_loading.setVisibility(View.GONE);
+                                                                    Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    } else {
+                        setPreview();
+                    }
                 }
 
                 break;
@@ -299,16 +537,306 @@ public class NewThread extends Fragment implements View.OnClickListener
                 break;
             case R.id.btnSubmit_Preview:
                 codeAlert.dismiss();
-                Toast.makeText(mContext, mContext.getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
-                FragmentManager fragmentManager = getFragmentManager();
-                assert fragmentManager != null;
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                if (THREAD_CONDITION.isEmpty())
-                    fragmentTransaction.replace(R.id.main_frame, new MainForum());
-                else
-                    onBackPress(false, mContext);
-                fragmentTransaction.commit();
-                break;
+                frame_loading.setVisibility(View.VISIBLE);
+
+                if (THREAD_CONDITION.isEmpty()) {
+                    final String key = dbRef.push().getKey();
+
+                    dbRef.child("forum").child(key);
+
+//                HashMap<String, String> map = new HashMap<>();
+//                map.put("FID", key);
+//                map.put("MID", prefConfig.getMid() + "");
+//                map.put("forum_content", content.getText().toString());
+//                map.put("forum_title", title.getText().toString());
+//                map.put("forum_date", getStory_date());
+//                map.put("forum_is_like", "false");
+//                map.put("forum_amount_like", "0");
+//                map.put("view_count", "1");
+
+                    Forum forum = new Forum(key, prefConfig.getMID(), content.getText().toString(), getDate(), title.getText().toString(), 0, 1, false);
+                    final Merchant merchant = new Merchant(prefConfig.getMID(), prefConfig.getName()
+                            , prefConfig.getLocation(), prefConfig.getProfilePicture()
+                            , prefConfig.getEmail(), prefConfig.getBackgroundPicture()
+                            , prefConfig.getPosition(), prefConfig.getCoin(), prefConfig.getExp());
+
+                    if (imageList.size() == 0) {
+                        dbRef.child("forum")
+                                .child(key)
+                                .setValue(forum)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        frame_loading.setVisibility(View.GONE);
+                                        Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+
+                                        Forum forum = new Forum(key, String.valueOf(prefConfig.getMID())
+                                                , content.getText().toString(), getDate()
+                                                , title.getText().toString(), 0, 1, false);
+                                        SelectedThread selectedThread = new SelectedThread();
+
+                                        AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                        Bundle bundle = new Bundle();
+                                        bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
+                                        bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                        fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                        selectedThread.setArguments(bundle);
+                                        fragmentTransaction.commit();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e(TAG, "This is failure");
+                                    }
+                                });
+                    } else {
+                        dbRef.child("forum").child(key).setValue(forum)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        for (int i = 0; i < imageList.size(); i++) {
+                                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                            imageList.get(i).getImage_bitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
+                                            byte[] byteData = baos.toByteArray();
+
+                                            Random random = new Random();
+                                            final int ran = random.nextInt(10000);
+                                            final String imgName = "forum-first-" + prefConfig.getMID() + "-" + key + "-" + ran;
+
+                                            UploadTask uploadTask = storageReference.child(imgName).putBytes(byteData);
+                                            // it will make image name become unique
+                                            final int finalI = i;
+                                            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                @Override
+                                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                    storageReference
+                                                            .child(imgName)
+                                                            .getDownloadUrl()
+                                                            .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                                @Override
+                                                                public void onSuccess(Uri uri) {
+                                                                    HashMap<String, String> imgMap = new HashMap<>();
+                                                                    imgMap.put("image_name", imgName);
+                                                                    imgMap.put("image_url", uri.toString());
+
+                                                                    dbRef.child("forum_image");
+
+                                                                    String key1 = dbRef.push().getKey();
+
+                                                                    imgMap.put("fiid", key1);
+
+                                                                    dbRef.child(Constant.DB_REFERENCE_FORUM).child(key + "/forum_image/" + key1)
+                                                                            .setValue(imgMap)
+                                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                                @Override
+                                                                                public void onSuccess(Void aVoid) {
+                                                                                    if (finalI == imageList.size() - 1) {
+                                                                                        Forum forum = new Forum(key, String.valueOf(prefConfig.getMID())
+                                                                                                , content.getText().toString(), getDate()
+                                                                                                , title.getText().toString(), 0, 1, false);
+                                                                                        SelectedThread selectedThread = new SelectedThread();
+
+                                                                                        AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                                                                        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                                                                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                                                                        Bundle bundle = new Bundle();
+                                                                                        bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
+                                                                                        bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                                                                        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                                                                        fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                                                                        selectedThread.setArguments(bundle);
+                                                                                        fragmentTransaction.commit();
+                                                                                        frame_loading.setVisibility(View.GONE);
+                                                                                        Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                                                                    }
+                                                                                }
+                                                                            })
+                                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                                @Override
+                                                                                public void onFailure(@NonNull Exception e) {
+
+                                                                                }
+                                                                            });
+                                                                }
+                                                            })
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+
+                                                                }
+                                                            });
+
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+
+                                                }
+                                            });
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e(TAG, "This is failure");
+                                    }
+                                });
+                    }
+                } else if (THREAD_CONDITION.equals(EDIT_THREAD) || THREAD_CONDITION.equals(EDIT_THREAD_SELECTED)) {
+                    final Merchant merchant = new Merchant(prefConfig.getMID(), prefConfig.getName()
+                            , prefConfig.getLocation(), prefConfig.getProfilePicture()
+                            , prefConfig.getEmail(), prefConfig.getBackgroundPicture()
+                            , prefConfig.getPosition(), prefConfig.getCoin(), prefConfig.getExp());
+
+                    Map<String, Object> map = new HashMap<>();
+
+                    if (imageList.size() == 0) {
+                        if (forumImageList.size() > 0) {
+                            for (int i = 0; i < forumImageList.size(); i++) {
+                                storageReference.child(forumImageList.get(i).getImage_name()).delete();
+                            }
+                            dbRef.child("forum")
+                                    .child(forum.getFid() + "/forum_image")
+                                    .removeValue();
+                        }
+                        map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_content", content.getText().toString());
+                        map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_title/", title.getText().toString());
+                        dbRef.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+//                                frame_loading.setVisibility(View.GONE);
+                                Forum forums = new Forum(forum.getFid(), String.valueOf(prefConfig.getMID())
+                                        , content.getText().toString(), forum.getForum_date()
+                                        , title.getText().toString(), forum.getForum_like()
+                                        , forum.getView_count(), forum.isLike());
+                                SelectedThread selectedThread = new SelectedThread();
+
+                                AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                Bundle bundle = new Bundle();
+                                bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forums);
+                                bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                selectedThread.setArguments(bundle);
+                                fragmentTransaction.commit();
+                                Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_content", content.getText().toString());
+                        map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_title/", title.getText().toString());
+
+                        dbRef.updateChildren(map);
+
+                        if (forumImageList.size() > 0) {
+                            for (int i = 0; i < forumImageList.size(); i++) {
+                                storageReference.child(forumImageList.get(i).getImage_name()).delete();
+                                dbRef.child("forum")
+                                        .child(forum.getFid() + "/forum_image/" + forumImageList.get(i).getFiid())
+                                        .removeValue();
+                            }
+                        }
+
+                        for (int i = 0; i < imageList.size(); i++) {
+                            final String key = dbRef.child(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE).push().getKey();
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            imageList.get(i).getImage_bitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
+                            byte[] byteData = baos.toByteArray();
+
+                            Random random = new Random();
+                            final int ran = random.nextInt(10000);
+                            final String imgName = "forum-first-" + prefConfig.getMID() + "-" + key + "-" + ran;
+
+                            UploadTask uploadTask = storageReference.child(imgName).putBytes(byteData);
+                            // it will make image name become unique
+                            final int finalI = i;
+                            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    storageReference
+                                            .child(imgName)
+                                            .getDownloadUrl()
+                                            .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                @Override
+                                                public void onSuccess(Uri uri) {
+                                                    HashMap<String, String> imgMap = new HashMap<>();
+                                                    imgMap.put("image_name", imgName);
+                                                    imgMap.put("image_url", uri.toString());
+
+                                                    dbRef.child("forum_image");
+
+                                                    String key1 = dbRef.push().getKey();
+
+                                                    imgMap.put("fiid", key1);
+
+                                                    dbRef.child("forum").child(forum.getFid() + "/forum_image/" + key1)
+                                                            .setValue(imgMap)
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void aVoid) {
+                                                                    if (finalI == imageList.size() - 1) {
+                                                                        Forum forums = new Forum(forum.getFid(), String.valueOf(prefConfig.getMID())
+                                                                                , content.getText().toString(), forum.getForum_date()
+                                                                                , title.getText().toString(), forum.getForum_like()
+                                                                                , forum.getView_count(), forum.isLike());
+                                                                        SelectedThread selectedThread = new SelectedThread();
+
+                                                                        AppCompatActivity activity = (AppCompatActivity) mContext;
+
+                                                                        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                                                                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                                                                        Bundle bundle = new Bundle();
+                                                                        bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forums);
+                                                                        bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+
+                                                                        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                                                                        fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                                                                        selectedThread.setArguments(bundle);
+                                                                        fragmentTransaction.commit();
+                                                                        Toast.makeText(mContext, getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                }
+                                                            });
+                                                }
+                                            });
+                                }
+                            });
+                        }
+                    }
+                } else
+
+
+//                FragmentManager fragmentManager = getFragmentManager();
+//                assert fragmentManager != null;
+//                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//                if (THREAD_CONDITION.isEmpty())
+//                    // direct it to specific thread
+//                    fragmentTransaction.replace(R.id.main_frame, new MainForum());
+//                else
+//                    onBackPress(false, mContext);
+//                fragmentTransaction.commit();
+                    break;
         }
     }
 
@@ -446,9 +974,54 @@ public class NewThread extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onItemClicked(int pos, String states) {
+    public void onItemClicked(final int pos, String states) {
+//        if (THREAD_CONDITION.equals(EDIT_THREAD)) {
+//            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+//            builder.setMessage("Apakah Anda yakin? Gambar yang telah dihapus tidak dapat dikembalikan.")
+//                    .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            frame_loading.setVisibility(View.VISIBLE);
+//                            dbRef.child(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE + "/" + forumImageList.get(pos).getFiid())
+//                                    .removeValue(new DatabaseReference.CompletionListener() {
+//                                        @Override
+//                                        public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+//
+//                                            storageReference.child(imageList.get(pos).getTitle())
+//                                                    .delete()
+//                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                                        @Override
+//                                                        public void onSuccess(Void aVoid) {
+//                                                            imageList.remove(pos);
+//                                                            imagePickerAdapter.setImageList(imageList);
+//                                                            frame_loading.setVisibility(View.GONE);
+//                                                        }
+//                                                    });
+//                                        }
+//                                    });
+////                        MainForum mainForum = new MainForum();
+////
+////                        AppCompatActivity activity = (AppCompatActivity) context;
+////
+////                        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+////                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+////
+////                        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+////                        fragmentTransaction.replace(R.id.main_frame, mainForum);
+////
+////                        fragmentTransaction.commit();
+//                        }
+//                    })
+//                    .setNegativeButton("Tidak", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                        }
+//                    }).show();
+//        } else {
         imageList.remove(pos);
         imagePickerAdapter.setImageList(imageList);
+//        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -466,21 +1039,39 @@ public class NewThread extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onBackPress(boolean check, Context context) {
-        SelectedThread selectedThread = new SelectedThread();
+    public void onBackPress(boolean check, final Context context) {
+        if (THREAD_CONDITION.equals(EDIT_THREAD) || THREAD_CONDITION.isEmpty()) {
+            MainForum mainForum = new MainForum();
 
-        AppCompatActivity activity = (AppCompatActivity) context;
+            AppCompatActivity activity = (AppCompatActivity) context;
 
-        FragmentManager fragmentManager = activity.getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            FragmentManager fragmentManager = activity.getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forumThread);
+            fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+            fragmentTransaction.replace(R.id.main_frame, mainForum);
 
-        fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
-        fragmentTransaction.replace(R.id.main_frame, selectedThread);
+            fragmentTransaction.commit();
+        } else {
+            SelectedThread selectedThread = new SelectedThread();
 
-        selectedThread.setArguments(bundle);
-        fragmentTransaction.commit();
+            AppCompatActivity activity = (AppCompatActivity) context;
+
+            FragmentManager fragmentManager = activity.getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
+            bundle.putParcelable(SelectedThread.GET_MERCHANT, new Merchant(prefConfig.getMID()
+                    , prefConfig.getName(), prefConfig.getLocation(), prefConfig.getProfilePicture()
+                    , prefConfig.getEmail(), prefConfig.getBackgroundPicture(), prefConfig.getPosition()
+                    , prefConfig.getCoin(), prefConfig.getExp()));
+
+            fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+            fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+            selectedThread.setArguments(bundle);
+            fragmentTransaction.commit();
+        }
     }
 }

@@ -62,7 +62,7 @@ public class PromoStuffSQLite extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL);
     }
 
-    public Cursor getData(int ID) {
+    public Cursor getData(String ID) {
         String SQL = "select * from " + TABLE_NAME + " where " + KEY_PREFERENCE_ID + " = '" + ID + "';";
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
         return sqLiteDatabase.rawQuery(SQL, null);

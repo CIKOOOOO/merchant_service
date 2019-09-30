@@ -198,8 +198,7 @@
                 android:id="@+id/image_frame"
                 android:layout_width="300dp"
                 android:layout_height="400dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/placeholder" />
+                android:layout_centerInParent="true" />
 
             <ImageButton
                 android:id="@+id/download_image_frame"
@@ -216,10 +215,29 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/image_frame"
+                android:layout_alignParentStart="true"
                 android:layout_marginStart="30dp"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp"
+                android:layout_toStartOf="@id/download_image_frame"
                 android:textColor="@color/white_color"
                 android:textSize="15sp" />
         </RelativeLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frame_loading_main_forum"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blackPalette"
+        android:visibility="gone">
+
+        <com.developers.coolprogressviews.CircleWithArcProgress
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:arcColor="@color/blue_palette"
+            app:circleColor="@color/royal_blue_palette"
+            app:radius1="30dp" />
+
     </FrameLayout>
 </android.support.design.widget.CoordinatorLayout>

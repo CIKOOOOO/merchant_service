@@ -42,7 +42,6 @@
                     android:layout_height="50dp"
                     android:layout_margin="10dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/img3"
                     app:riv_border_color="#333333"
                     app:riv_border_width="1dip"
                     app:riv_corner_radius="20dip" />
@@ -57,7 +56,6 @@
                         android:id="@+id/merchantName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Toko Serba Ada "
                         android:textColor="@color/white_color"
                         android:textSize="15sp" />
 
@@ -65,7 +63,6 @@
                         android:id="@+id/merchantLoc_Preview"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Jakarta"
                         android:textColor="@color/white_color"
                         android:textSize="13sp" />
                 </LinearLayout>

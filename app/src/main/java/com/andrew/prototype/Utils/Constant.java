@@ -8,7 +8,6 @@ import com.andrew.prototype.Model.ForumThread;
 import com.andrew.prototype.Model.ImagePicker;
 import com.andrew.prototype.Model.ProfileModel;
 import com.andrew.prototype.Model.Report;
-import com.andrew.prototype.Model.ShowCase;
 import com.andrew.prototype.Model.SyncImg;
 import com.andrew.prototype.R;
 
@@ -27,6 +26,11 @@ public class Constant {
     public static final int ACTIVITY_TAKE_IMAGE = 106;
     public static final String DB_REFERENCE_TRANSACTION_REQUEST_PROMO = "transaction_request_promo";
     public static final String DB_REFERENCE_MERCHANT_PROFILE = "merchant_profile";
+    public static final String DB_REFERENCE_MERCHANT_STORY = "merchant_story";
+    public static final String DB_REFERENCE_FORUM = "forum";
+    public static final String DB_REFERENCE_FORUM_REPLY = "forum_reply";
+    public static final String DB_REFERENCE_FORUM_IMAGE = "forum_image";
+    public static final String DB_REFERENCE_FORUM_IMAGE_REPLY = "forum_image_reply";
     public static final int MAX_ALPHA = 220;
 
 //    private static final String[] trendingTitle = {"Potret Asli Afrika Vs Anggapan Banyak Orang"
@@ -256,16 +260,6 @@ public class Constant {
             strings.add(new Report(aReportList, false));
         }
         return strings;
-    }
-
-    public static List<ShowCase> getShowCase() {
-        List<ShowCase> showCases = new ArrayList<>();
-        int i = 0;
-        for (String merchantName : merchantName) {
-            showCases.add(new ShowCase(desc[i], merchantName, imageAsset[i]));
-            i++;
-        }
-        return showCases;
     }
 
     public static List<ProfileModel> getProfileModels() {

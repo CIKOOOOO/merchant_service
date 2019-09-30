@@ -292,10 +292,10 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
         txt_jam_end.setOnClickListener(this);
         tester.setOnClickListener(this);
 
-        Cursor cursor = promoSQLite.getData(prefConfig.getMID());
+        Cursor cursor = promoSQLite.getData(prefConfig.getPrefID());
         Cursor cursor1 = promoStuffSQLite.getData(prefConfig.getMID());
         while (cursor.moveToNext()) {
-            if (cursor.getInt(0) == prefConfig.getMID()) {
+            if (cursor.getInt(0) == prefConfig.getPrefID()) {
                 frame_template_ads.setBackgroundColor(cursor.getInt(1));
                 etTemplateAds.setText(cursor.getString(2));
                 promotionTitle.setText(cursor.getString(3));
@@ -322,7 +322,7 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
         }
 
         while (cursor1.moveToNext()) {
-            if (cursor1.getInt(1) == prefConfig.getMID()) {
+            if (cursor1.getInt(1) == prefConfig.getPrefID()) {
                 String name = cursor1.getString(2);
                 byte[] image = cursor1.getBlob(3);
                 String value = cursor1.getString(4);
@@ -431,8 +431,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 } else {
 //                etTemplateAds.clearComposingText();
 //                etTemplateAds.setCursorVisible(false);
-                    promoSQLite.deleteAll(prefConfig.getMID());
-                    promoStuffSQLite.deleteAll(prefConfig.getMID());
+                    promoSQLite.deleteAll(prefConfig.getPrefID());
+                    promoStuffSQLite.deleteAll(prefConfig.getPrefID());
                     prefConfig.insertId(-1);
                     PromoTransaction promoTransaction =
                             new PromoTransaction(promoTitle, txt_tgl_start.getText().toString()
@@ -1033,9 +1033,9 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 public void onClick(DialogInterface dialogInterface, int i) {
                     Random random = new Random();
                     int ran = random.nextInt(10);
-                    promoSQLite.deleteAll(prefConfig.getMID());
-                    promoStuffSQLite.deleteAll(prefConfig.getMID());
-                    prefConfig.insertId(ran);
+                    promoSQLite.deleteAll(prefConfig.getPrefID());
+                    promoStuffSQLite.deleteAll(prefConfig.getPrefID());
+                    prefConfig.insertPreferencesID(ran);
                     promoSQLite.insertData(ran, etTemplateAds.getText().toString(), adsTemplate
                             , promotionTitle.getText().toString(), etEmail.getText().toString()
                             , etPhone.getText().toString(), etOfficePhone.getText().toString()
@@ -1076,9 +1076,9 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     changeFragment(context, new Profile());
-                    if (prefConfig.getMID() != -1) {
-                        promoSQLite.deleteAll(prefConfig.getMID());
-                        promoStuffSQLite.deleteAll(prefConfig.getMID());
+                    if (prefConfig.getPrefID() != -1) {
+                        promoSQLite.deleteAll(prefConfig.getPrefID());
+                        promoStuffSQLite.deleteAll(prefConfig.getPrefID());
                         prefConfig.insertId(-1);
                     }
                 }
@@ -1086,8 +1086,8 @@ public class PromoRequest extends Fragment implements View.OnClickListener, Temp
             builder.setCancelable(true);
             builder.show();
         } else {
-            promoSQLite.deleteAll(prefConfig.getMID());
-            promoStuffSQLite.deleteAll(prefConfig.getMID());
+            promoSQLite.deleteAll(prefConfig.getPrefID());
+            promoStuffSQLite.deleteAll(prefConfig.getPrefID());
             prefConfig.insertId(-1);
             changeFragment(context, new Profile());
         }

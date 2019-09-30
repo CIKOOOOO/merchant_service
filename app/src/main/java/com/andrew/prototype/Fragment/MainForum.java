@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -51,19 +52,41 @@ import com.andrew.prototype.Activity.MainActivity;
 import com.andrew.prototype.Adapter.ShowcaseAdapter;
 import com.andrew.prototype.Adapter.ThreadAdapter;
 import com.andrew.prototype.Adapter.TrendingAdapter;
+import com.andrew.prototype.Model.Forum;
 import com.andrew.prototype.Model.ForumThread;
-import com.andrew.prototype.Model.ShowCase;
+import com.andrew.prototype.Model.Merchant;
+import com.andrew.prototype.Model.MerchantStory;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
+import com.andrew.prototype.Utils.PrefConfig;
+import com.andrew.prototype.Utils.Utils;
 import com.baoyz.widget.PullRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.developers.coolprogressviews.ColorfulProgress;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 
 
 /**
@@ -77,23 +100,22 @@ public class MainForum extends Fragment implements View.OnClickListener
 
     public static final String BUNDLE_SEARCH = "BUNDLE_SEARCH";
 
-    public static boolean trendingIsVisible, showcase_condition, isSearch;
     public static FrameLayout frame_showcase;
+    public static boolean trendingIsVisible, showcase_condition, isSearch;
 
     private static final String TAG = MainForum.class.getSimpleName();
+
     private static RecyclerView showcase_recycler_view, trending_recycler_view;
     private static ShowcaseAdapter showcaseAdapter;
     private static TrendingAdapter trendingAdapter;
-    private static List<ForumThread> trendingArrayList, tempList;
+    private static List<Forum> trendingArrayList, tempList, searchList, forumLists;
     private static LinearLayout trending_linear;
-    private static List<ForumThread> forumList, searchList;
-    private static List<ShowCase> showCaseList;
+    private static List<MerchantStory> showCaseList;
 
     private View v;
     private RecyclerView thread_recycler_view;
     private ThreadAdapter threadAdapter;
-    private List<ForumThread> tempAll, forRealTemp;
-    private EditText etSearch, etInput_ShowCase;
+    private EditText etSearch;
     private TextView tvResult, tvError_AddShowCase;
     private PullRefreshLayout swipeRefreshLayout;
     private LinearLayoutManager threadLayoutManager;
@@ -103,11 +125,16 @@ public class MainForum extends Fragment implements View.OnClickListener
     private Context mContext;
     private Activity mActivity;
     private ScaleDrawable scaleDrawable;
+    private DatabaseReference dbStory, dbForum, dbProfile;
+    private StorageReference storageStory;
+    private PrefConfig prefConfig;
+    private FrameLayout frame_loading;
 
-    private boolean c = false;
-    private int page_number = 1;
-    private boolean isLoad = true;
-    private int pastVisibleItems, visibleItemCounts, totalItemCount, previous_total = 0;
+    private Map<String, Merchant> merchantMap;
+    private boolean c;
+    private int page_number;
+    private boolean isLoad;
+    private int pastVisibleItems, visibleItemCounts, totalItemCount, previous_total;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -124,12 +151,23 @@ public class MainForum extends Fragment implements View.OnClickListener
     }
 
     private void initVar() {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+
         mContext = v.getContext();
 
+        c = false;
+        page_number = 1;
+        isLoad = true;
+        previous_total = 0;
         trendingIsVisible = false;
         showcase_condition = false;
         isSearch = false;
 
+        prefConfig = new PrefConfig(mContext);
+        dbStory = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_STORY);
+        dbForum = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_FORUM);
+        dbProfile = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
+        storageStory = storage.getReference(Constant.DB_REFERENCE_MERCHANT_STORY);
         scaleDrawable = DecodeBitmap.setScaleDrawable(mContext, R.drawable.placeholder);
 
         LinearLayout linearLayout = v.findViewById(R.id.parentll_main_forum);
@@ -144,20 +182,23 @@ public class MainForum extends Fragment implements View.OnClickListener
         trending_recycler_view = v.findViewById(R.id.recyclerTrending_MainForum);
         trending_linear = v.findViewById(R.id.linear_trending);
         frame_showcase = v.findViewById(R.id.picture_frame);
+
         etSearch = v.findViewById(R.id.etSearch);
         swipeRefreshLayout = v.findViewById(R.id.swipe);
         tvResult = v.findViewById(R.id.tv_result);
         colorfulProgress = v.findViewById(R.id.colorfulProgress);
         img_showcase = v.findViewById(R.id.image_frame);
         thread_recycler_view = v.findViewById(R.id.recyclerThread_MainForum);
+        frame_loading = v.findViewById(R.id.frame_loading_main_forum);
 
         trendingArrayList = new ArrayList<>();
         tempList = new ArrayList<>();
-        forumList = new ArrayList<>(Constant.getForumList(mContext));
         searchList = new ArrayList<>();
         showCaseList = new ArrayList<>();
-        tempAll = new ArrayList<>();
-        forRealTemp = new ArrayList<>();
+
+        forumLists = new ArrayList<>();
+
+        merchantMap = new HashMap<>();
 
         threadLayoutManager = new LinearLayoutManager(mContext);
         swipeRefreshLayout.setDurations(0, 3);
@@ -166,23 +207,56 @@ public class MainForum extends Fragment implements View.OnClickListener
 
         setAdapter(v);
 
-        Bundle bundle = getArguments();
+        final Bundle bundle = getArguments();
         if (bundle != null) {
-            String result = bundle.getString(BUNDLE_SEARCH);
-            if (result != null) {
+            /*
+             * Untuk mendapatkan hasil search dari Selected Forum
+             * */
+            if (bundle.getString(BUNDLE_SEARCH) != null) {
+                final String result = bundle.getString(BUNDLE_SEARCH);
                 tvResult.setVisibility(View.VISIBLE);
                 tvResult.setText("Hasil dari \'" + result + "\'");
-                searchList.clear();
+                forumLists.clear();
 
-                for (ForumThread thread : forumList) {
-                    if (thread.getTitle().toLowerCase().trim().contains(result.toLowerCase().trim())) {
-                        searchList.add(thread);
+                dbForum.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        trendingArrayList.clear();
+                        forumLists.clear();
+                        merchantMap.clear();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            final Forum forum = snapshot.getValue(Forum.class);
+                            if (forum.getForum_title().trim().toLowerCase().contains(result.trim().toLowerCase())) {
+                                dbProfile.child(forum.getMid()).addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshots) {
+                                        if (dataSnapshots.getValue(Merchant.class) == null || forum.getMid() == null || merchantMap.containsKey(forum.getMid())) {
+                                            return;
+                                        }
+                                        merchantMap.put(forum.getMid(), Objects.requireNonNull(dataSnapshots.getValue(Merchant.class)));
+                                        threadAdapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                    }
+                                });
+                                forumLists.add(0, forum);
+                            }
+                        }
+                        threadAdapter.setForumList(forumLists, merchantMap);
+
+                        threadAdapter.notifyDataSetChanged();
+                        isSearch = true;
+                        bundle.remove(BUNDLE_SEARCH);
                     }
-                }
-                threadAdapter.setForumList(searchList);
-                removeTrending(mContext);
-                isSearch = true;
-                bundle.remove(BUNDLE_SEARCH);
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
             } else {
                 tvResult.setVisibility(View.GONE);
                 isSearch = false;
@@ -193,23 +267,21 @@ public class MainForum extends Fragment implements View.OnClickListener
 
         removeTrending(mContext);
 
-        tempList.addAll(trendingArrayList);
-
         etSearch.addTextChangedListener(this);
         etSearch.setOnClickListener(this);
         etSearch.setOnKeyListener(this);
 
         file_download.setOnClickListener(this);
         relativeLayout.setOnClickListener(this);
-        frame_showcase.setOnClickListener(this);
         close.setOnClickListener(this);
         linearLayout.setOnClickListener(this);
         new_thread.setOnClickListener(this);
         search.setOnClickListener(this);
         img_showcase.setOnClickListener(this);
+        frame_showcase.setOnClickListener(this);
 
         scrollView.setOnTouchListener(this);
-        scrollView.setOnScrollChangeListener(this);
+//        scrollView.setOnScrollChangeListener(this);
 
         swipeRefreshLayout.setOnRefreshListener(this);
     }
@@ -221,32 +293,20 @@ public class MainForum extends Fragment implements View.OnClickListener
                 search();
                 break;
             case R.id.etSearch:
-                Animation animation = AnimationUtils.loadAnimation(view.getContext(), R.anim.slide_up);
-                Animation animation2 = AnimationUtils.loadAnimation(view.getContext(), R.anim.slide_down);
+                /*
+                 * Jika kolom search di klik maka akan masuk kedalam kondisi dibawah
+                 * */
                 if (trendingIsVisible) {
-                    trendingIsVisible = false;
                     removeTrending(mContext);
-                    hideSoftKeyboard(mActivity);
-                    trending_linear.setAnimation(animation);
-                    showcaseAdapter = new ShowcaseAdapter(view.getContext(), showCaseList, false, this);
-                    trendingAdapter = new TrendingAdapter(view.getContext(), tempList, this, false);
                 } else {
-                    trendingIsVisible = true;
-                    makeVisible();
-                    trending_linear.setAnimation(animation2);
-                    showcaseAdapter = new ShowcaseAdapter(view.getContext(), showCaseList, true, this);
-                    trendingAdapter = new TrendingAdapter(view.getContext(), tempList, this, true);
+                    makeTrendingVisible();
                 }
-                showcase_recycler_view.setAdapter(showcaseAdapter);
-                trending_recycler_view.setAdapter(trendingAdapter);
                 break;
             case R.id.parentll_main_forum:
                 removeTrending(view.getContext());
                 break;
             case R.id.recyclerView_MainForum:
-                trendingIsVisible = true;
-                trending_linear.setAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.slide_up));
-                makeGone();
+                removeTrending(view.getContext());
                 break;
             case R.id.imgBtn_AddThread:
                 FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -256,9 +316,11 @@ public class MainForum extends Fragment implements View.OnClickListener
                 break;
             case R.id.btn_close_frame:
                 frame_showcase.setVisibility(View.GONE);
+                MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
                 break;
             case R.id.rl_frame_main:
                 frame_showcase.setVisibility(View.GONE);
+                MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
                 break;
             case R.id.download_image_frame:
                 Bitmap bitmap = ((BitmapDrawable) img_showcase.getDrawable()).getBitmap();
@@ -270,20 +332,59 @@ public class MainForum extends Fragment implements View.OnClickListener
                 } else {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.download_success), Toast.LENGTH_SHORT).show();
                     MediaStore.Images.Media.insertImage(mActivity.getContentResolver(), bitmap
-                            , showCaseList.get(position).getMerchantName(), "");
+                            , showCaseList.get(position).getSid(), "");
                 }
                 break;
             case R.id.btnSubmit_AddShowCase:
-                String checkName = etInput_ShowCase.getText().toString();
                 tvError_AddShowCase.setVisibility(View.GONE);
-                if (checkName.trim().isEmpty()) {
-                    etInput_ShowCase.setError(mContext.getResources().getString(R.string.dont_empty_this_edittext));
-                } else if (img_add_showcase.getDrawable() == null) {
+                if (img_add_showcase.getDrawable() == null) {
                     tvError_AddShowCase.setVisibility(View.VISIBLE);
                 } else {
-                    Toast.makeText(mContext, mContext.getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
-                    showCaseList.add(1, new ShowCase("", checkName, ((BitmapDrawable) img_add_showcase.getDrawable()).getBitmap()));
-                    showcaseAdapter.setShowCases(showCaseList);
+                    Random random = new Random();
+                    final int ran = random.nextInt(10000);
+                    frame_loading.setVisibility(View.VISIBLE);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ((BitmapDrawable) img_add_showcase.getDrawable()).getBitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
+                    byte[] byteData = baos.toByteArray();
+
+                    final UploadTask uploadTask = storageStory.child("story-" + prefConfig.getMID() + "-" + ran).putBytes(byteData);
+
+                    uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            storageStory.child("story-" + prefConfig.getMID() + "-" + ran).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(final Uri uri) {
+                                    /*
+                                     * Apabila data tersebut telah dihapus, maka sekarang mencari URL dr foto yang diupload
+                                     * Data merchant akan diupdate sesuai dengan URL terbaru
+                                     * */
+                                    String key = dbStory.child(prefConfig.getMID() + "").push().getKey();
+
+                                    HashMap<String, String> map = new HashMap<>();
+                                    map.put("sid", key);
+                                    map.put("story_picture", uri.toString());
+                                    map.put("story_date", Utils.getTime("yyyy-MM-dd HH:mm"));
+
+                                    dbStory.child(prefConfig.getMID() + "").child(key).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            /*
+                                             * Kondisi dibawah ini akan berjalan jika value sudah berhasil diUpdate
+                                             * */
+                                            Toast.makeText(mContext, mContext.getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                            frame_loading.setVisibility(View.GONE);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                        }
+                    });
                     codeAlert.dismiss();
                 }
                 break;
@@ -306,44 +407,119 @@ public class MainForum extends Fragment implements View.OnClickListener
         }
     }
 
-    private void makeGone() {
-        trending_linear.setVisibility(View.GONE);
+    private void makeTrendingVisible() {
+        /*
+         * Merupakan function yang berfungsi untuk memunculkan trending list pada search box
+         * */
+        Animation animation2 = AnimationUtils.loadAnimation(mContext, R.anim.slide_down);
         RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) trending_linear.getLayoutParams();
-        lp.height = 0;
-    }
 
-    private void makeVisible() {
+        lp.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+
         trendingIsVisible = true;
         trending_linear.setVisibility(View.VISIBLE);
-        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) trending_linear.getLayoutParams();
-        lp.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        trending_recycler_view.setVisibility(View.VISIBLE);
+        trending_linear.setAnimation(animation2);
     }
 
     private void loadData() {
-        trendingArrayList.addAll(Constant.getTrending(mContext));
-        tempAll.addAll(Constant.getForumList(mContext));
-        showCaseList.addAll(Constant.getShowCase());
-        if (!isSearch)
-            performPagination();
+        dbStory
+//                .orderByChild("story_date")
+//                .startAt(Utils.getTime("yyyy-MM-") + "01")
+//                .endAt(Utils.getTime("yyyy-MM-") + Utils.gettingAmountDaysOfMonth())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            showCaseList.clear();
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String URL = "";
+                                String MID = "";
+                                String date = "";
+                                String SID = "";
+                                for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                                    SID = snapshot1.child("sid").getValue(String.class);
+                                    date = snapshot1.child("story_date").getValue(String.class);
+                                    URL = snapshot1.child("story_picture").getValue(String.class);
+                                    MID = snapshot.getRef().getKey();
+                                }
+                                showCaseList.add(0, new MerchantStory(URL, SID, MID, date));
+                            }
+
+                            Collections.sort(showCaseList, new Comparator<MerchantStory>() {
+                                @Override
+                                public int compare(MerchantStory t2, MerchantStory t1) {
+                                    return t1.getStory_date().compareTo(t2.getStory_date());
+                                }
+                            });
+
+                            showcaseAdapter.setShowCases(showCaseList);
+                            showcaseAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
+        dbForum.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!isSearch) {
+                    trendingArrayList.clear();
+                    forumLists.clear();
+                    merchantMap.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        final Forum forum = snapshot.getValue(Forum.class);
+                        dbProfile.child(forum.getMid()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshots) {
+                                if (dataSnapshots.getValue(Merchant.class) == null || forum.getMid() == null || merchantMap.containsKey(forum.getMid())) {
+                                    return;
+                                }
+                                merchantMap.put(forum.getMid(), Objects.requireNonNull(dataSnapshots.getValue(Merchant.class)));
+                                threadAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                        trendingArrayList.add(forum);
+                        forumLists.add(0, forum);
+                    }
+                    threadAdapter.setForumList(forumLists, merchantMap);
+                    trendingAdapter.setTrendingList(trendingArrayList);
+
+                    trendingAdapter.notifyDataSetChanged();
+                    threadAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+//        if (!isSearch)
+//            performPagination();
     }
 
     private void removeTrending(Context context) {
-//        trendingIsVisible = true;
-        if (trendingIsVisible) {
-            trendingIsVisible = false;
-            Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_up);
-            trending_linear.setAnimation(animation);
-            trendingAdapter = new TrendingAdapter(context, tempList, this, false);
-            showcaseAdapter = new ShowcaseAdapter(context, showCaseList, trendingIsVisible, this);
-            showcase_recycler_view.setAdapter(showcaseAdapter);
-            trending_recycler_view.setAdapter(trendingAdapter);
-            makeGone();
-            hideSoftKeyboard(mActivity);
-        }
+        trendingIsVisible = false;
+        Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_up);
+        trending_linear.setAnimation(animation);
+        hideSoftKeyboard(mActivity);
+        trending_linear.setVisibility(View.GONE);
+        trending_recycler_view.setVisibility(View.GONE);
     }
 
     private void setAdapter(View view) {
-        trendingAdapter = new TrendingAdapter(mContext, trendingArrayList, this, false);
+        trendingAdapter = new TrendingAdapter(mContext, trendingArrayList, this);
         trending_recycler_view.setLayoutManager(new LinearLayoutManager(view.getContext()));
         trending_recycler_view.setAdapter(trendingAdapter);
 
@@ -351,7 +527,7 @@ public class MainForum extends Fragment implements View.OnClickListener
         showcase_recycler_view.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false));
         showcase_recycler_view.setAdapter(showcaseAdapter);
 
-        threadAdapter = new ThreadAdapter(mContext, forRealTemp, this, this, this);
+        threadAdapter = new ThreadAdapter(mContext, forumLists, merchantMap, this, this, this);
         thread_recycler_view.setLayoutManager(threadLayoutManager);
         thread_recycler_view.setAdapter(threadAdapter);
     }
@@ -367,37 +543,40 @@ public class MainForum extends Fragment implements View.OnClickListener
 
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        makeVisible();
+        if (!trendingIsVisible) {
+            makeTrendingVisible();
+        }
     }
 
     @Override
     public void afterTextChanged(Editable editable) {
         tempList.clear();
-        makeVisible();
         if (editable.toString().isEmpty()) {
             tempList.addAll(trendingArrayList);
             trendingAdapter.setTrendingList(trendingArrayList);
         } else {
             for (int i = 0; i < trendingArrayList.size(); i++) {
-                if (trendingArrayList.get(i).getTitle().toLowerCase().trim().startsWith(editable.toString().toLowerCase().trim())) {
+                if (trendingArrayList.get(i).getForum_title().toLowerCase().trim().contains(editable.toString().toLowerCase().trim())) {
                     tempList.add(trendingArrayList.get(i));
                 }
             }
             trendingAdapter.setTrendingList(tempList);
         }
+        trendingAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onItemClick(int pos, List<ForumThread> forumThreads) {
+    public void onItemClick(int pos, List<Forum> forumThreads) {
         if (forumThreads.size() == 0) {
             Log.e("HEHE", "PENCARIAN");
         } else {
-            ForumThread thread = forumThreads.get(pos);
+            Forum thread = forumThreads.get(pos);
             SelectedThread selectedThread = new SelectedThread();
             Bundle bundle = new Bundle();
             FragmentManager fragmentManager = getFragmentManager();
 
             bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, thread);
+            bundle.putParcelable(SelectedThread.GET_MERCHANT, merchantMap.get(thread.getMid()));
 
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -418,19 +597,18 @@ public class MainForum extends Fragment implements View.OnClickListener
             if (pos == 0) {
                 addShowCase();
             } else {
-                showcase_condition = true;
                 TextView textView = v.findViewById(R.id.merchantName_MainForum);
-                textView.setText("Merchant Name : " + showCaseList.get(pos).getMerchantName());
+                if (showCaseList.get(pos - 1).getMid().equals(prefConfig.getMID())) {
+                    textView.setText("Merchant Name : " + prefConfig.getName());
+                } else {
+                    textView.setText("Merchant Name : " + showCaseList.get(pos - 1).getMid());
+                }
+                showcase_condition = true;
                 frame_showcase.setVisibility(View.VISIBLE);
                 frame_showcase.getBackground().setAlpha(230);
-                if (showCaseList.get(pos).getImage() != 0)
-                    DecodeBitmap.setScaledImageView(img_showcase, showCaseList.get(pos).getImage(), context);
-                else Glide.with(context)
-                        .load(DecodeBitmap.compressBitmap(showCaseList.get(pos).getImgBitmap()))
-                        .placeholder(scaleDrawable)
-                        .into(img_showcase);
+                Picasso.get().load(showCaseList.get(pos - 1).getStory_picture()).into(img_showcase);
+                MainActivity.bottomNavigationView.setVisibility(View.GONE);
             }
-
         }
     }
 
@@ -438,7 +616,6 @@ public class MainForum extends Fragment implements View.OnClickListener
         AlertDialog.Builder codeBuilder = new AlertDialog.Builder(mContext);
         View codeView = getLayoutInflater().inflate(R.layout.custom_add_show_case, null);
         img_add_showcase = codeView.findViewById(R.id.imgView_AddShowCase);
-        etInput_ShowCase = codeView.findViewById(R.id.etInputName_AddShowCae);
         tvError_AddShowCase = codeView.findViewById(R.id.show_error_content_add_show_case);
         Button submit = codeView.findViewById(R.id.btnSubmit_AddShowCase);
         Button cancel = codeView.findViewById(R.id.btnCancel_AddShowCase);
@@ -460,23 +637,31 @@ public class MainForum extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onClick(int pos) {
-//        removeTrending(v.getContext());
+    public void onClick(int pos, final Merchant merchant) {
         if (thread_recycler_view.isEnabled()) {
-            ForumThread forumThread = forumList.get(pos);
-            SelectedThread selectedThread = new SelectedThread();
-            Bundle bundle = new Bundle();
-            FragmentManager fragmentManager = getFragmentManager();
+            final Forum forumThread = forumLists.get(pos);
+            Map<String, Object> map = new HashMap<>();
+            map.put(forumThread.getFid() + "/view_count", forumThread.getView_count() + 1);
 
-            bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, (Parcelable) forumThread);
+            dbForum.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    SelectedThread selectedThread = new SelectedThread();
+                    Bundle bundle = new Bundle();
+                    FragmentManager fragmentManager = getFragmentManager();
 
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, (Parcelable) forumThread);
+                    bundle.putParcelable(SelectedThread.GET_MERCHANT, (Parcelable) merchant);
 
-            fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
-            fragmentTransaction.replace(R.id.main_frame, selectedThread);
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-            selectedThread.setArguments(bundle);
-            fragmentTransaction.commit();
+                    fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                    fragmentTransaction.replace(R.id.main_frame, selectedThread);
+
+                    selectedThread.setArguments(bundle);
+                    fragmentTransaction.commit();
+                }
+            });
         }
     }
 
@@ -558,23 +743,23 @@ public class MainForum extends Fragment implements View.OnClickListener
         from = page_number * item_count - (item_count - 1);
         to = page_number * item_count;
 
-        if (page_number == 1) forumThreads.add(tempAll.get(0));
+//        if (page_number == 1) forumThreads.add(tempAll.get(0));
 
-        for (int i = from; i < to + 1; i++) {
-            if (i >= tempAll.size()) {
-                c = true;
-                break;
-            }
-            c = false;
-            forumThreads.add(tempAll.get(i));
-        }
+//        for (int i = from; i < to + 1; i++) {
+//            if (i >= tempAll.size()) {
+//                c = true;
+//                break;
+//            }
+//            c = false;
+//            forumThreads.add(tempAll.get(i));
+//        }
 
         page_number++;
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                threadAdapter.addThread(forumThreads);
+//                threadAdapter.addThread(forumThreads);
                 colorfulProgress.setVisibility(View.GONE);
                 if (c) {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.end_of_thread), Toast.LENGTH_SHORT).show();
@@ -589,33 +774,49 @@ public class MainForum extends Fragment implements View.OnClickListener
             tvResult.setVisibility(View.VISIBLE);
             tvResult.setText("Hasil dari \'" + result + "\'");
             searchList.clear();
-            for (int i = 0; i < forumList.size(); i++) {
-                if (forumList.get(i).getTitle().toLowerCase().trim().contains(result.toLowerCase().trim())) {
-                    searchList.add(forumList.get(i));
+            for (int i = 0; i < forumLists.size(); i++) {
+                if (forumLists.get(i).getForum_title().toLowerCase().trim().contains(result.toLowerCase().trim())) {
+                    searchList.add(forumLists.get(i));
                 }
             }
-            threadAdapter.setForumList(searchList);
+            threadAdapter.setForumList(searchList, merchantMap);
             removeTrending(mContext);
             isSearch = true;
+            threadAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
-    public void hide(String username, List<ForumThread> forumThreads) {
+    public void hide(String username, List<Forum> forumThreads) {
         for (int i = 0; i < forumThreads.size(); i++) {
-            if (forumThreads.get(i).getUsername().toLowerCase().trim().equals(username.toLowerCase().trim())) {
-                previous_total--;
-                forumList.remove(i);
-                threadAdapter.deleteList(i);
-            }
+//            if (forumThreads.get(i).getUsername().toLowerCase().trim().equals(username.toLowerCase().trim())) {
+//                previous_total--;
+//                forumList.remove(i);
+//                threadAdapter.deleteList(i);
+//            }
         }
     }
 
     @Override
-    public void onDelete(int i, List<ForumThread> forumThreads) {
-        threadAdapter.deleteList(i);
-        forumList.remove(i);
-        previous_total--;
+    public void onDelete(final int i, final Forum forum) {
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+        builder.setMessage("Apa Anda yakin untuk menghapus thread berjudul " + forum.getForum_title() + " ?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int a) {
+                        dbForum.child(forum.getFid()).removeValue();
+                        forumLists.remove(i);
+                        threadAdapter.deleteList(i);
+                        previous_total--;
+                        Toast.makeText(mContext, mContext.getResources().getString(R.string.thread_deleted), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                }).show();
     }
 
     @Override
@@ -638,7 +839,7 @@ public class MainForum extends Fragment implements View.OnClickListener
                     int position = showcaseAdapter.getAdapterPosition();
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.download_success), Toast.LENGTH_SHORT).show();
                     MediaStore.Images.Media.insertImage(mActivity.getContentResolver(), bitmap
-                            , showCaseList.get(position).getMerchantName(), "");
+                            , showCaseList.get(position).getSid(), "");
                 } else {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.permission_failed), Toast.LENGTH_SHORT).show();
                 }

@@ -19,7 +19,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.Holder> {
     private List<Report> reportList;
     private Context context;
 
-    ReportAdapter(List<Report> reportList, Context context) {
+    public ReportAdapter(List<Report> reportList, Context context) {
         this.reportList = reportList;
         this.context = context;
     }

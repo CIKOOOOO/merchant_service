@@ -21,7 +21,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,17 +36,21 @@ import android.widget.Toast;
 import com.andrew.prototype.Activity.MainActivity;
 import com.andrew.prototype.Adapter.ProfileAdapter;
 import com.andrew.prototype.Adapter.ShowcaseAdapter;
+import com.andrew.prototype.Model.MerchantStory;
 import com.andrew.prototype.Model.ProfileModel;
-import com.andrew.prototype.Model.ShowCase;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
 import com.andrew.prototype.Utils.PrefConfig;
+import com.andrew.prototype.Utils.Utils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -58,6 +61,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -82,11 +86,11 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
     private ScaleDrawable scaleDrawable;
     private Context mContext;
     private Activity mActivity;
-    private StorageReference storageReference;
-    private DatabaseReference databaseReference;
+    private StorageReference storageProfile, storageStory;
+    private DatabaseReference dbProfile, dbStory;
     private FrameLayout frame_loading;
 
-    private List<ShowCase> showCaseList;
+    private List<MerchantStory> showCaseList;
     private ShowcaseAdapter showcaseAdapter;
     private PrefConfig prefConfig;
 
@@ -106,9 +110,12 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
 
     private void initVar() {
         FirebaseStorage storage = FirebaseStorage.getInstance();
+        List<ProfileModel> profileModelList = new ArrayList<>(Constant.getProfileModels());
 
-        databaseReference = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
-        storageReference = storage.getReference("merchant_profile");
+        dbProfile = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
+        dbStory = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_STORY);
+        storageProfile = storage.getReference(Constant.DB_REFERENCE_MERCHANT_PROFILE);
+        storageStory = storage.getReference(Constant.DB_REFERENCE_MERCHANT_STORY);
         mContext = v.getContext();
         prefConfig = new PrefConfig(mContext);
         scaleDrawable = DecodeBitmap.setScaleDrawable(mContext, R.drawable.placeholder);
@@ -116,11 +123,11 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
 
         ImageButton profileAdd = v.findViewById(R.id.btn_change_picture_profile);
         ImageButton homeAdd = v.findViewById(R.id.btn_change_home_profile);
+        ImageButton file_download = v.findViewById(R.id.download_image_frame_profile);
+        ImageButton btnClose = v.findViewById(R.id.btn_close_frame_profile);
         RecyclerView recyclerView = v.findViewById(R.id.recycler_profile);
         RecyclerView recycler_showcase = v.findViewById(R.id.recycler_profile_image);
         RelativeLayout relativeLayout = v.findViewById(R.id.rl_frame_main_profile);
-        ImageButton file_download = v.findViewById(R.id.download_image_frame_profile);
-        ImageButton btnClose = v.findViewById(R.id.btn_close_frame_profile);
         TextView text_name = v.findViewById(R.id.tv_merchant_name_profile);
         TextView text_position = v.findViewById(R.id.text_position_profile);
         TextView text_email = v.findViewById(R.id.tv_email_profile);
@@ -133,9 +140,8 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         frame_loading = v.findViewById(R.id.frame_loading_profile);
 
         showCaseList = new ArrayList<>();
-        List<ProfileModel> profileModelList = new ArrayList<>(Constant.getProfileModels());
 
-        showCaseList.addAll(Constant.getShowCase());
+//        showCaseList.addAll(Constant.getShowCase());
 
         showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, this);
 
@@ -159,11 +165,31 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
 
         profileAdd.setOnClickListener(this);
         homeAdd.setOnClickListener(this);
-        img_showcase.setOnClickListener(this);
         relativeLayout.setOnClickListener(this);
         btnClose.setOnClickListener(this);
         file_download.setOnClickListener(this);
+        img_showcase.setOnClickListener(this);
         frame_loading.setOnClickListener(this);
+
+        dbStory.child(prefConfig.getMID() + "").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    showCaseList.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        MerchantStory merchantStory = snapshot.getValue(MerchantStory.class);
+                        showCaseList.add(0, merchantStory);
+                    }
+                    showcaseAdapter.setShowCases(showCaseList);
+                    showcaseAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -196,14 +222,57 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
             case R.id.btnSubmit_AddShowCase:
                 String checkName = etInput_ShowCase.getText().toString();
                 tvError_AddShowCase.setVisibility(View.GONE);
-                if (checkName.isEmpty()) {
-                    etInput_ShowCase.setError(mContext.getResources().getString(R.string.dont_empty_this_edittext));
-                } else if (img_add_showcase.getDrawable() == null) {
+//                if (checkName.isEmpty()) {
+//                    etInput_ShowCase.setError(mContext.getResources().getString(R.string.dont_empty_this_edittext));
+//                } else
+                if (img_add_showcase.getDrawable() == null) {
                     tvError_AddShowCase.setVisibility(View.VISIBLE);
                 } else {
-                    Toast.makeText(mContext, mContext.getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
-                    showCaseList.add(1, new ShowCase("", checkName, ((BitmapDrawable) img_add_showcase.getDrawable()).getBitmap()));
-                    showcaseAdapter.setShowCases(showCaseList);
+                    Random random = new Random();
+                    final int ran = random.nextInt(10000);
+                    frame_loading.setVisibility(View.VISIBLE);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ((BitmapDrawable) img_add_showcase.getDrawable()).getBitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
+                    byte[] byteData = baos.toByteArray();
+
+                    final UploadTask uploadTask = storageStory.child("story-" + prefConfig.getMID() + "-" + ran).putBytes(byteData);
+
+                    uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            storageStory.child("story-" + prefConfig.getMID() + "-" + ran).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(final Uri uri) {
+                                    /*
+                                     * Apabila data tersebut telah dihapus, maka sekarang mencari URL dr foto yang diupload
+                                     * Data merchant akan diupdate sesuai dengan URL terbaru
+                                     * */
+                                    String key = dbStory.child(prefConfig.getMID() + "").push().getKey();
+
+                                    HashMap<String, String> map = new HashMap<>();
+                                    map.put("SID", key);
+                                    map.put("story_picture", uri.toString());
+                                    map.put("story_date", Utils.getTime("yyyy-MM-dd HH:mm"));
+
+                                    dbStory.child(prefConfig.getMID() + "").child(key).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            /*
+                                             * Kondisi dibawah ini akan berjalan jika value sudah berhasil diUpdate
+                                             * */
+                                            Toast.makeText(mContext, mContext.getResources().getString(R.string.submit_success), Toast.LENGTH_SHORT).show();
+                                            frame_loading.setVisibility(View.GONE);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                        }
+                    });
                     codeAlert.dismiss();
                 }
                 break;
@@ -232,7 +301,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                 } else {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.download_success), Toast.LENGTH_SHORT).show();
                     MediaStore.Images.Media.insertImage(mActivity.getContentResolver(), bitmap
-                            , showCaseList.get(position).getMerchantName(), "");
+                            , showCaseList.get(position - 1).getSid() + "", "");
                 }
                 break;
             case R.id.btn_close_frame_profile:
@@ -264,7 +333,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.download_success), Toast.LENGTH_SHORT).show();
                     MediaStore.Images.Media.insertImage(mContext.getContentResolver(), bitmap
-                            , showCaseList.get(position).getMerchantName(), "");
+                            , showCaseList.get(position - 1).getSid() + "", "");
                 } else {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.permission_failed), Toast.LENGTH_SHORT).show();
                 }
@@ -322,15 +391,10 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
             showAddShowCase();
         } else {
             showcase_condition = true;
-            TextView textView = v.findViewById(R.id.merchantName_Profile);
-            textView.setText("Merchant Name : " + showCaseList.get(pos).getMerchantName());
             frame_add_showcase.setVisibility(View.VISIBLE);
             frame_add_showcase.getBackground().setAlpha(230);
-            if (showCaseList.get(pos).getImage() != 0)
-                DecodeBitmap.setScaledImageView(img_showcase, showCaseList.get(pos).getImage(), mContext);
-            else Glide.with(mContext)
-                    .load(DecodeBitmap.compressBitmap(showCaseList.get(pos).getImgBitmap()))
-                    .placeholder(scaleDrawable)
+            Picasso.get()
+                    .load(showCaseList.get(pos - 1).getStory_picture())
                     .into(img_showcase);
         }
     }
@@ -363,6 +427,10 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
             case 5:
                 changeFragment(new Loyalty());
                 break;
+            case 8:
+                // Untuk kembali ke halaman login MID
+                mActivity.finish();
+                break;
         }
     }
 
@@ -377,11 +445,11 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DecodeBitmap.decodeSampleBitmapFromUri(uris, imageView.getWidth(), imageView.getHeight(), mContext).compress(Bitmap.CompressFormat.JPEG, 30, baos);
         byte[] byteData = baos.toByteArray();
-        final UploadTask uploadTask = storageReference.child(name).putBytes(byteData);
+        final UploadTask uploadTask = storageProfile.child(name).putBytes(byteData);
         /*
          * Data yang ada difirebase harus dihapus terlebih dahulu sebelum ditimpa oleh data baru
          * */
-        storageReference.child(name)
+        storageProfile.child(name)
                 .delete()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -392,14 +460,14 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                storageProfile.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(final Uri uri) {
                                         /*
                                          * Apabila data tersebut telah dihapus, maka sekarang mencari URL dr foto yang diupload
                                          * Data merchant akan diupdate sesuai dengan URL terbaru
                                          * */
-                                        databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        dbProfile.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
                                                 /*
@@ -440,13 +508,13 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                storageReference.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                storageProfile.child(name).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(final Uri uri) {
                                         /*
                                          * Setelah foto selesai diupload, saat ini mencari URL foto tersebut
                                          * */
-                                        databaseReference.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        dbProfile.child(prefConfig.getMID() + "").child(child).setValue(uri.toString()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
                                                 switch (child) {

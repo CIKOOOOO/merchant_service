@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
 
                             PrefConfig prefConfig = new PrefConfig(LoginActivity.this);
 
-                            prefConfig.insertMerchantData(merchant.getMID(), merchant.getMerchant_name()
+                            prefConfig.insertMerchantData(merchant.getMid(), merchant.getMerchant_name()
                                     , merchant.getMerchant_location(), merchant.getMerchant_profile_picture()
                                     , merchant.getMerchant_email(), merchant.getMerchant_background_picture()
                                     , merchant.getMerchant_coin(), merchant.getMerchant_exp()

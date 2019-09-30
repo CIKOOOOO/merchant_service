@@ -11,31 +11,28 @@ import android.widget.TextView;
 
 
 import com.andexert.library.RippleView;
+import com.andrew.prototype.Model.Forum;
 import com.andrew.prototype.Model.ForumThread;
 import com.andrew.prototype.R;
 
 import java.util.List;
 
 public class TrendingAdapter extends RecyclerView.Adapter<TrendingAdapter.ViewHolder> {
-    private List<ForumThread> trendingList;
+    private List<Forum> trendingList;
     private Context context;
-    private boolean check;
 
     public interface itemClickListener {
-        void onItemClick(int pos, List<ForumThread> forumThreads);
+        void onItemClick(int pos, List<Forum> forumThreads);
     }
 
-    public void setTrendingList(List<ForumThread> trendingList) {
+    public void setTrendingList(List<Forum> trendingList) {
         this.trendingList = trendingList;
-        notifyDataSetChanged();
     }
 
     private itemClickListener itemClickListener;
 
-    public TrendingAdapter(Context context, List<ForumThread> trendingList
-            , itemClickListener itemClickListener, boolean check) {
+    public TrendingAdapter(Context context, List<Forum> trendingList, itemClickListener itemClickListener) {
         this.trendingList = trendingList;
-        this.check = check;
         this.context = context;
         this.itemClickListener = itemClickListener;
     }
@@ -52,7 +49,7 @@ public class TrendingAdapter extends RecyclerView.Adapter<TrendingAdapter.ViewHo
         if (trendingList.size() == 0) {
             v.textView.setText(context.getResources().getString(R.string.find_search));
         } else {
-            v.textView.setText(trendingList.get(i).getTitle());
+            v.textView.setText(trendingList.get(i).getForum_title());
 //            if (check) {
             v.rippleView.setOnRippleCompleteListener(new RippleView.OnRippleCompleteListener() {
                 @Override

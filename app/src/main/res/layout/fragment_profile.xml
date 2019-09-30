@@ -141,7 +141,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="MID Number    "
+                        android:text="mid Number    "
                         android:textColor="@color/iron_palette"
                         android:textSize="16sp" />
 
@@ -208,6 +208,7 @@
         <RelativeLayout
             android:id="@+id/rl_frame_main_profile"
             android:layout_width="match_parent"
+            android:background="@android:color/transparent"
             android:layout_height="match_parent">
 
             <ImageButton
@@ -223,8 +224,7 @@
                 android:id="@+id/image_frame_profile"
                 android:layout_width="300dp"
                 android:layout_height="400dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/placeholder" />
+                android:layout_centerInParent="true" />
 
             <ImageButton
                 android:id="@+id/download_image_frame_profile"
@@ -243,7 +243,6 @@
                 android:layout_below="@id/image_frame_profile"
                 android:layout_marginStart="30dp"
                 android:layout_marginTop="30dp"
-                android:text="@string/special_price"
                 android:textColor="@color/white_color"
                 android:textSize="15sp" />
         </RelativeLayout>
@@ -262,6 +261,5 @@
             app:arcColor="@color/blue_palette"
             app:circleColor="@color/royal_blue_palette"
             app:radius1="30dp" />
-
     </FrameLayout>
 </android.support.design.widget.CoordinatorLayout>

@@ -15,10 +15,10 @@ public class PrefConfig {
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.pref_file), Context.MODE_PRIVATE);
     }
 
-    public void insertMerchantData(int mid, String name, String location, String profile_picture, String email
+    public void insertMerchantData(String mid, String name, String location, String profile_picture, String email
             , String background_picture, int coin, int exp, String position) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(context.getString(R.string.pref_mid), mid);
+        editor.putString(context.getString(R.string.pref_mid), mid);
         editor.putInt(context.getString(R.string.pref_coin), coin);
         editor.putInt(context.getString(R.string.pref_exp), exp);
         editor.putString(context.getString(R.string.pref_name), name);
@@ -27,6 +27,12 @@ public class PrefConfig {
         editor.putString(context.getString(R.string.pref_email), email);
         editor.putString(context.getString(R.string.pref_background_picture), background_picture);
         editor.putString(context.getString(R.string.pref_position), position);
+        editor.commit();
+    }
+
+    public void insertPreferencesID(int pref_id) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(context.getString(R.string.pref_profile_picture), pref_id);
         editor.commit();
     }
 
@@ -44,7 +50,7 @@ public class PrefConfig {
 
     public void insertId(int id) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putInt(context.getString(R.string.pref_mid), id);
+        editor.putInt(context.getString(R.string.pref_id), id);
         editor.commit();
     }
 
@@ -68,12 +74,16 @@ public class PrefConfig {
         return sharedPreferences.getInt(context.getString(R.string.pref_coin), 0);
     }
 
+    public int getPrefID() {
+        return sharedPreferences.getInt(context.getString(R.string.pref_coin), 0);
+    }
+
     public String getPosition() {
         return sharedPreferences.getString(context.getString(R.string.pref_position), "");
     }
 
-    public int getMID() {
-        return sharedPreferences.getInt(context.getString(R.string.pref_mid), -1);
+    public String getMID() {
+        return sharedPreferences.getString(context.getString(R.string.pref_mid), "");
     }
 
     public String getName() {

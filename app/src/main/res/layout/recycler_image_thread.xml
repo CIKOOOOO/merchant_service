@@ -12,6 +12,7 @@
         android:layout_height="150dp"
         android:layout_centerInParent="true"
         android:scaleType="centerCrop"
+        android:background="@android:color/transparent"
         app:riv_border_color="@color/blackPalette"
         app:riv_border_width="2dp"
         app:riv_corner_radius="10dip" />
@@ -27,5 +28,4 @@
         android:maxLength="15"
         android:textColor="@color/toolbar_base"
         android:visibility="gone" />
-
 </RelativeLayout>

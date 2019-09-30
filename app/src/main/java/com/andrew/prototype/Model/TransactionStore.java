@@ -1,19 +1,19 @@
 package com.andrew.prototype.Model;
 
 public class TransactionStore {
-    private String TID, date;
+    private String tid, date;
     private int bank_logo;
     private long earning;
 
-    public TransactionStore(String TID, String date, int bank_logo, long earning) {
-        this.TID = TID;
+    public TransactionStore(String tid, String date, int bank_logo, long earning) {
+        this.tid = tid;
         this.date = date;
         this.bank_logo = bank_logo;
         this.earning = earning;
     }
 
-    public String getTID() {
-        return TID;
+    public String getTid() {
+        return tid;
     }
 
     public String getDate() {

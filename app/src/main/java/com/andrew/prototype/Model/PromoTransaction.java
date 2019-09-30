@@ -3,10 +3,8 @@ package com.andrew.prototype.Model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.List;
-
 public class PromoTransaction implements Parcelable {
-    private String TID, MID, imageURLForAds, promotionTitle, timeRequest, dateRequest, dateStart, dateEnd, timeStart, timeEnd, promotionCategory, stuffTID, description, statusChecking, adsContent, phoneNumber, officePhoneNumber, emailAddress, address;
+    private String tid, mid, imageURLForAds, promotionTitle, timeRequest, dateRequest, dateStart, dateEnd, timeStart, timeEnd, promotionCategory, stuffTID, description, statusChecking, adsContent, phoneNumber, officePhoneNumber, emailAddress, address;
     private int adsTemplate, adsColorContent;
 
     public PromoTransaction(String promotionTitle, String dateStart, String dateEnd, String timeStart, String timeEnd
@@ -28,8 +26,11 @@ public class PromoTransaction implements Parcelable {
         this.address = address;
     }
 
-    //    public PromoTransaction(String TID, String imageURLForAds, String promotionTitle, String dateStart, String dateEnd, String timeStart, String timeEnd, String promotionCategory, String stuffTID, List<PromoForm> promoFormList) {
-//        this.TID = TID;
+    public PromoTransaction() {
+    }
+
+    //    public PromoTransaction(String tid, String imageURLForAds, String promotionTitle, String dateStart, String dateEnd, String timeStart, String timeEnd, String promotionCategory, String stuffTID, List<PromoForm> promoFormList) {
+//        this.tid = tid;
 //        this.imageURLForAds = imageURLForAds;
 //        this.promotionTitle = promotionTitle;
 //        this.dateStart = dateStart;
@@ -42,11 +43,11 @@ public class PromoTransaction implements Parcelable {
 //    }
 
 
-    public PromoTransaction(String TID, String imageURLForAds, String promotionTitle, String timeRequest
+    public PromoTransaction(String tid, String imageURLForAds, String promotionTitle, String timeRequest
             , String dateRequest, String dateStart, String dateEnd, String timeStart, String timeEnd
             , String promotionCategory, String description, String statusChecking
             , String phoneNumber, String officePhoneNumber, String emailAddress, String address) {
-        this.TID = TID;
+        this.tid = tid;
         this.imageURLForAds = imageURLForAds;
         this.promotionTitle = promotionTitle;
         this.timeRequest = timeRequest;
@@ -65,7 +66,7 @@ public class PromoTransaction implements Parcelable {
     }
 
     protected PromoTransaction(Parcel in) {
-        TID = in.readString();
+        tid = in.readString();
         imageURLForAds = in.readString();
         promotionTitle = in.readString();
         dateStart = in.readString();
@@ -97,8 +98,8 @@ public class PromoTransaction implements Parcelable {
         }
     };
 
-    public String getMID() {
-        return MID;
+    public String getMid() {
+        return mid;
     }
 
     public String getTimeRequest() {
@@ -142,8 +143,8 @@ public class PromoTransaction implements Parcelable {
         return statusChecking;
     }
 
-    public String getTID() {
-        return TID;
+    public String getTid() {
+        return tid;
     }
 
     public String getImageURLForAds() {
@@ -190,7 +191,7 @@ public class PromoTransaction implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(TID);
+        parcel.writeString(tid);
         parcel.writeString(imageURLForAds);
         parcel.writeString(promotionTitle);
         parcel.writeString(dateStart);

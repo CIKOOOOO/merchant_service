@@ -35,6 +35,7 @@ import com.andrew.prototype.Model.PromoForm;
 import com.andrew.prototype.Model.PromoTransaction;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
+import com.andrew.prototype.Utils.PrefConfig;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -72,6 +73,7 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
     private DatabaseReference dbRef;
     private StorageReference storageRef;
     private ProgressDialog progressDialog;
+    private PrefConfig prefConfig;
 
     private Bitmap img_bitmap;
     private String downloadUrl, promoTitle, address, promoDesc, promoDateStart, promoDateEnd, promoTimeStart, promoTimeEnd, promoCategory, phoneNumber, officePhoneNumber, email;
@@ -89,6 +91,7 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
         FirebaseStorage storage = FirebaseStorage.getInstance();
 
         mContext = v.getContext();
+        prefConfig = new PrefConfig(mContext);
         storageRef = storage.getReference();
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(mContext.getResources().getString(R.string.please_wait));
@@ -221,7 +224,6 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
         int n = 10000;
         n = generator.nextInt(n);
         String imgName = "Image-" + n + ".jpeg";
-        final int MID = 299;
         final StorageReference childRef = storageRef.child(imgName);
 
         UploadTask uploadTask = childRef.putBytes(data);
@@ -243,8 +245,8 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
                         final String TID = dbRef.push().getKey();
 
                         HashMap<String, String> map = new HashMap<>();
-                        map.put("MID", String.valueOf(MID));
-                        map.put("TID", TID);
+                        map.put("mid", String.valueOf(prefConfig.getMID()));
+                        map.put("tid", TID);
                         map.put("imageURLForAds", downloadUrl);
                         map.put("promotionTitle", promoTitle);
                         map.put("dateStart", promoDateStart);
@@ -262,7 +264,7 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
                         map.put("timeRequest", getTime("HH:mm"));
                         map.put("address", address);
 
-                        dbRef.child(String.valueOf(MID)).child(TID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        dbRef.child(String.valueOf(prefConfig.getMID())).child(TID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
                                 for (final PromoForm promoTransaction1 : promoTransactionList) {
@@ -296,7 +298,7 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
                                                     public void onSuccess(Uri uri) {
                                                         String downloadURL = uri.toString();
                                                         map.put("urlImageProduct", downloadURL);
-                                                        dbRef.child(String.valueOf(MID)).child(TID).child("product").child(PID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        dbRef.child(String.valueOf(prefConfig.getMID())).child(TID).child("product").child(PID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                             @Override
                                                             public void onSuccess(Void aVoid) {
                                                                 progressDialog.dismiss();
@@ -310,7 +312,7 @@ public class PreviewProquest extends Fragment implements View.OnClickListener, M
                                         });
                                     } else {
                                         map.put("urlImageProduct", "null");
-                                        dbRef.child(String.valueOf(MID)).child(TID).child("product").child(PID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        dbRef.child(String.valueOf(prefConfig.getMID())).child(TID).child("product").child(PID).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
                                                 progressDialog.dismiss();
