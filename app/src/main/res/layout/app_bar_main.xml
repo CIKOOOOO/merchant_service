@@ -25,17 +25,19 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/bottom_navigation_main"
             android:layout_below="@+id/toolbar_app_bar" />
-
-        <android.support.design.widget.BottomNavigationView
-            android:id="@+id/bottom_navigation_main"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:background="@color/blue_palette"
-            app:itemIconSize="20dp"
-            app:itemIconTint="@drawable/bottom_nav_color"
-            app:itemTextColor="@drawable/bottom_nav_color"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_navigation" />
     </RelativeLayout>
+
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_navigation_main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
+        android:background="@color/blue_palette"
+        app:itemIconSize="20dp"
+        app:itemIconTint="@drawable/bottom_nav_color"
+        app:itemTextColor="@drawable/bottom_nav_color"
+        app:labelVisibilityMode="labeled"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
+        app:menu="@menu/bottom_navigation" />
 </android.support.design.widget.CoordinatorLayout>

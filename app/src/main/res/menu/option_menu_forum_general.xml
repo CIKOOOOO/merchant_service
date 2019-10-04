@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_report"
+        android:title="@string/report_thread" />
+    <!--<item-->
+        <!--android:id="@+id/menu_hide"-->
+        <!--android:title="@string/hide_thread" />-->
+    <!--<item-->
+        <!--android:id="@+id/menu_dont_show"-->
+        <!--android:title="@string/dont_show_thread" />-->
+</menu>

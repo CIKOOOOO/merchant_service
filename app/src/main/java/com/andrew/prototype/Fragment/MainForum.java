@@ -96,7 +96,7 @@ public class MainForum extends Fragment implements View.OnClickListener
         , MainActivity.onBackPressFragment, TextWatcher, TrendingAdapter.itemClickListener
         , ShowcaseAdapter.onImageClickListener, ThreadAdapter.onItemClick, View.OnKeyListener
         , View.OnTouchListener, PullRefreshLayout.OnRefreshListener, NestedScrollView.OnScrollChangeListener
-        , ThreadAdapter.hideAccount, ThreadAdapter.onItemDelete {
+        , ThreadAdapter.onItemDelete {
 
     public static final String BUNDLE_SEARCH = "BUNDLE_SEARCH";
 
@@ -281,7 +281,7 @@ public class MainForum extends Fragment implements View.OnClickListener
         frame_showcase.setOnClickListener(this);
 
         scrollView.setOnTouchListener(this);
-//        scrollView.setOnScrollChangeListener(this);
+        scrollView.setOnScrollChangeListener(this);
 
         swipeRefreshLayout.setOnRefreshListener(this);
     }
@@ -527,7 +527,7 @@ public class MainForum extends Fragment implements View.OnClickListener
         showcase_recycler_view.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false));
         showcase_recycler_view.setAdapter(showcaseAdapter);
 
-        threadAdapter = new ThreadAdapter(mContext, forumLists, merchantMap, this, this, this);
+        threadAdapter = new ThreadAdapter(mContext, forumLists, merchantMap, this, this);
         thread_recycler_view.setLayoutManager(threadLayoutManager);
         thread_recycler_view.setAdapter(threadAdapter);
     }
@@ -710,28 +710,28 @@ public class MainForum extends Fragment implements View.OnClickListener
 
     @Override
     public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-        if (!isSearch) {
-            if (v.getChildAt(v.getChildCount() - 1) != null) {
-                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) &&
-                        scrollY > oldScrollY) {
-                    visibleItemCounts = threadLayoutManager.getChildCount();
-                    totalItemCount = threadLayoutManager.getItemCount();
-                    pastVisibleItems = threadLayoutManager.findFirstVisibleItemPosition();
-                    if (isLoad) {
-                        if (totalItemCount > previous_total) {
-                            isLoad = false;
-                            previous_total = totalItemCount;
-                        }
-                    }
-
-                    int view_threshold = 2;
-                    if (!isLoad && (totalItemCount - visibleItemCounts) <= (pastVisibleItems + view_threshold)) {
-                        performPagination();
-                        isLoad = true;
-                    }
-                }
-            }
-        }
+//        if (!isSearch) {
+//            if (v.getChildAt(v.getChildCount() - 1) != null) {
+//                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) &&
+//                        scrollY > oldScrollY) {
+//                    visibleItemCounts = threadLayoutManager.getChildCount();
+//                    totalItemCount = threadLayoutManager.getItemCount();
+//                    pastVisibleItems = threadLayoutManager.findFirstVisibleItemPosition();
+//                    if (isLoad) {
+//                        if (totalItemCount > previous_total) {
+//                            isLoad = false;
+//                            previous_total = totalItemCount;
+//                        }
+//                    }
+//
+//                    int view_threshold = 2;
+//                    if (!isLoad && (totalItemCount - visibleItemCounts) <= (pastVisibleItems + view_threshold)) {
+//                        performPagination();
+//                        isLoad = true;
+//                    }
+//                }
+//            }
+//        }
     }
 
     private void performPagination() {
@@ -783,17 +783,6 @@ public class MainForum extends Fragment implements View.OnClickListener
             removeTrending(mContext);
             isSearch = true;
             threadAdapter.notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    public void hide(String username, List<Forum> forumThreads) {
-        for (int i = 0; i < forumThreads.size(); i++) {
-//            if (forumThreads.get(i).getUsername().toLowerCase().trim().equals(username.toLowerCase().trim())) {
-//                previous_total--;
-//                forumList.remove(i);
-//                threadAdapter.deleteList(i);
-//            }
         }
     }
 

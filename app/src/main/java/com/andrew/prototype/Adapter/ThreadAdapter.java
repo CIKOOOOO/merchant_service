@@ -75,13 +75,11 @@ public class ThreadAdapter extends RecyclerView.Adapter<ThreadAdapter.ViewHolder
 
     private onItemClick onItemClick;
     private onItemDelete onItemDelete;
-    private hideAccount hideAccount;
 
     public ThreadAdapter(Context context, List<Forum> forumList, Map<String, Merchant> map
-            , ThreadAdapter.onItemClick onItemClick, hideAccount hideAccount, onItemDelete onItemDelete) {
+            , ThreadAdapter.onItemClick onItemClick, onItemDelete onItemDelete) {
         this.context = context;
         this.onItemDelete = onItemDelete;
-        this.hideAccount = hideAccount;
         this.map = map;
         this.forumList = forumList;
         this.onItemClick = onItemClick;

@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -35,6 +37,7 @@ import com.andrew.prototype.Fragment.StatusPromo;
 import com.andrew.prototype.Fragment.TabPromoRequest;
 import com.andrew.prototype.Fragment.TermCondition;
 import com.andrew.prototype.R;
+import com.andrew.prototype.Utils.BottomNavigationViewBehavior;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.PrefConfig;
 import com.google.firebase.FirebaseApp;
@@ -71,18 +74,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        bottomNavigationView = findViewById(R.id.bottom_navigation_main);
         ImageButton burgerMenu = findViewById(R.id.burgerMenu);
         ImageButton icon = findViewById(R.id.main_icon_toolbar);
 
         drawer = findViewById(R.id.drawer_layout);
+        bottomNavigationView = findViewById(R.id.bottom_navigation_main);
 
         changeFragment(new MainForum());
 
         drawer.addDrawerListener(this);
         burgerMenu.setOnClickListener(this);
-        navigationView.setNavigationItemSelectedListener(this);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
         icon.setOnClickListener(this);
 
@@ -91,6 +92,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(getResources().getColor(R.color.blue_palette));
         }
+
+        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomNavigationView.getLayoutParams();
+        layoutParams.setBehavior(new BottomNavigationViewBehavior());
     }
 
     @Override
