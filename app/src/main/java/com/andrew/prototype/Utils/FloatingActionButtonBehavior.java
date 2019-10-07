@@ -3,34 +3,32 @@ package com.andrew.prototype.Utils;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
 
-public class BottomNavigationViewBehavior extends CoordinatorLayout.Behavior<View> {
-
+public class FloatingActionButtonBehavior extends CoordinatorLayout.Behavior<FloatingActionButton> {
     private int height;
 
     @Override
-    public boolean onLayoutChild(CoordinatorLayout parent, View child, int layoutDirection) {
+    public boolean onLayoutChild(CoordinatorLayout parent, FloatingActionButton child, int layoutDirection) {
         height = child.getHeight();
         return super.onLayoutChild(parent, child, layoutDirection);
     }
 
     @Override
     public boolean onStartNestedScroll(@NonNull CoordinatorLayout coordinatorLayout,
-                                       View child, @NonNull
+                                       FloatingActionButton child, @NonNull
                                                View directTargetChild, @NonNull View target,
-                                       int axes, int type)
-    {
+                                       int axes, int type) {
         return axes == ViewCompat.SCROLL_AXIS_VERTICAL;
     }
 
     @Override
-    public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child,
+    public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull FloatingActionButton child,
                                @NonNull View target, int dxConsumed, int dyConsumed,
                                int dxUnconsumed, int dyUnconsumed,
-                               @ViewCompat.NestedScrollType int type)
-    {
+                               @ViewCompat.NestedScrollType int type) {
         if (dyConsumed > 0) {
             slideDown(child);
         } else if (dyConsumed < 0) {
@@ -38,13 +36,15 @@ public class BottomNavigationViewBehavior extends CoordinatorLayout.Behavior<Vie
         }
     }
 
-    private void slideUp(View child) {
+    private void slideUp(FloatingActionButton child) {
         child.clearAnimation();
-        child.animate().translationY(0).setDuration(200);
+        child.animate().alpha(1f).start();
     }
 
-    private void slideDown(View child) {
+    private void slideDown(FloatingActionButton child) {
         child.clearAnimation();
-        child.animate().translationY(height).setDuration(200);
+        child.animate().alpha(0f).start();
+
     }
+
 }

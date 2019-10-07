@@ -103,7 +103,6 @@ public class NewThread extends Fragment implements View.OnClickListener
 
     public static String THREAD_CONDITION;
 
-    private static ForumThread thread;
     private static PrefConfig prefConfig;
     private static Forum forum;
     private static Forum.ForumReply forumReply;
@@ -380,17 +379,18 @@ public class NewThread extends Fragment implements View.OnClickListener
                     if (THREAD_CONDITION.equals(EDIT_THREAD_REPLY)) {
                         frame_loading.setVisibility(View.VISIBLE);
                         Map<String, Object> map = new HashMap<>();
-                        if (imageList.size() == 0) {
-                            if (forumImageList.size() > 0) {
-                                for (int i = 0; i < forumImageList.size(); i++) {
-                                    storageReference.child(forumImageList.get(i).getImage_name()).delete();
-                                }
-                                dbRef.child(Constant.DB_REFERENCE_FORUM)
-                                        .child(forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_REPLY + "/"
-                                                + forumReply.getFrid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE_REPLY)
-                                        .removeValue();
+                        if (forumImageList.size() > 0) {
+                            for (int i = 0; i < forumImageList.size(); i++) {
+                                storageReference.child(forumImageList.get(i).getImage_name()).delete();
                             }
-                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_reply/" + forumReply.getFrid() + "/forum_content", content.getText().toString());
+                            dbRef.child(Constant.DB_REFERENCE_FORUM)
+                                    .child(forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_REPLY + "/"
+                                            + forumReply.getFrid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE_REPLY)
+                                    .removeValue();
+                        }
+                        if (imageList.size() == 0) {
+                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid()
+                                    + "/forum_reply/" + forumReply.getFrid() + "/forum_content", content.getText().toString());
                             dbRef.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
@@ -415,7 +415,8 @@ public class NewThread extends Fragment implements View.OnClickListener
                             });
                         } else {
                             final String key = dbRef.push().getKey();
-                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_reply/" + forumReply.getFrid() + "/forum_content", content.getText().toString());
+                            map.put(Constant.DB_REFERENCE_FORUM + "/" + forum.getFid() + "/forum_reply/"
+                                    + forumReply.getFrid() + "/forum_content", content.getText().toString());
                             for (int i = 0; i < imageList.size(); i++) {
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                 imageList.get(i).getImage_bitmap().compress(Bitmap.CompressFormat.JPEG, 30, baos);
@@ -443,14 +444,11 @@ public class NewThread extends Fragment implements View.OnClickListener
 
                                                 dbRef.child(Constant.DB_REFERENCE_FORUM + "/"
                                                         + forum.getFid() + "/" + Constant.DB_REFERENCE_FORUM_REPLY
-                                                        + "/" + key).setValue(imgMap)
+                                                        + "/" + forumReply.getFrid() + "/" + Constant.DB_REFERENCE_FORUM_IMAGE_REPLY + "/" + key).setValue(imgMap)
                                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                             @Override
                                                             public void onSuccess(Void aVoid) {
                                                                 if (finalI == imageList.size() - 1) {
-                                                                    Forum forums = new Forum(key, forum.getMid()
-                                                                            , content.getText().toString(), getDate()
-                                                                            , title.getText().toString(), forum.getForum_like(), forum.getView_count(), forum.isLike());
                                                                     SelectedThread selectedThread = new SelectedThread();
 
                                                                     AppCompatActivity activity = (AppCompatActivity) mContext;
@@ -459,7 +457,7 @@ public class NewThread extends Fragment implements View.OnClickListener
                                                                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
                                                                     Bundle bundle = new Bundle();
-                                                                    bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forums);
+                                                                    bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
                                                                     bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
 
                                                                     /*
@@ -555,10 +553,6 @@ public class NewThread extends Fragment implements View.OnClickListener
 //                map.put("view_count", "1");
 
                     Forum forum = new Forum(key, prefConfig.getMID(), content.getText().toString(), getDate(), title.getText().toString(), 0, 1, false);
-                    final Merchant merchant = new Merchant(prefConfig.getMID(), prefConfig.getName()
-                            , prefConfig.getLocation(), prefConfig.getProfilePicture()
-                            , prefConfig.getEmail(), prefConfig.getBackgroundPicture()
-                            , prefConfig.getPosition(), prefConfig.getCoin(), prefConfig.getExp());
 
                     if (imageList.size() == 0) {
                         dbRef.child("forum")
@@ -582,7 +576,7 @@ public class NewThread extends Fragment implements View.OnClickListener
 
                                         Bundle bundle = new Bundle();
                                         bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
-                                        bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+                                        bundle.putParcelable(SelectedThread.GET_MERCHANT, prefConfig.getMerchantData());
 
                                         fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                                         fragmentTransaction.replace(R.id.main_frame, selectedThread);
@@ -696,11 +690,6 @@ public class NewThread extends Fragment implements View.OnClickListener
                                 });
                     }
                 } else if (THREAD_CONDITION.equals(EDIT_THREAD) || THREAD_CONDITION.equals(EDIT_THREAD_SELECTED)) {
-                    final Merchant merchant = new Merchant(prefConfig.getMID(), prefConfig.getName()
-                            , prefConfig.getLocation(), prefConfig.getProfilePicture()
-                            , prefConfig.getEmail(), prefConfig.getBackgroundPicture()
-                            , prefConfig.getPosition(), prefConfig.getCoin(), prefConfig.getExp());
-
                     Map<String, Object> map = new HashMap<>();
 
                     if (imageList.size() == 0) {
@@ -731,7 +720,7 @@ public class NewThread extends Fragment implements View.OnClickListener
 
                                 Bundle bundle = new Bundle();
                                 bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forums);
-                                bundle.putParcelable(SelectedThread.GET_MERCHANT, merchant);
+                                bundle.putParcelable(SelectedThread.GET_MERCHANT, prefConfig.getMerchantData());
 
                                 fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                                 fragmentTransaction.replace(R.id.main_frame, selectedThread);
@@ -1062,10 +1051,7 @@ public class NewThread extends Fragment implements View.OnClickListener
 
             Bundle bundle = new Bundle();
             bundle.putParcelable(SelectedThread.GET_THREAD_OBJECT, forum);
-            bundle.putParcelable(SelectedThread.GET_MERCHANT, new Merchant(prefConfig.getMID()
-                    , prefConfig.getName(), prefConfig.getLocation(), prefConfig.getProfilePicture()
-                    , prefConfig.getEmail(), prefConfig.getBackgroundPicture(), prefConfig.getPosition()
-                    , prefConfig.getCoin(), prefConfig.getExp()));
+            bundle.putParcelable(SelectedThread.GET_MERCHANT, prefConfig.getMerchantData());
 
             fragmentTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
             fragmentTransaction.replace(R.id.main_frame, selectedThread);

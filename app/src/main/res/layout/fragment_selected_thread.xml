@@ -342,7 +342,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:layout_marginBottom="20dp"
+                    android:layout_marginBottom="50dp"
                     android:background="@drawable/background_white_w_stroke"
                     android:orientation="vertical">
 
@@ -482,7 +482,7 @@
                     android:textStyle="bold" />
 
                 <android.support.v7.widget.RecyclerView
-                    android:id="@+id/recyclerTrending_SelectedThread"
+                    android:id="@+id/recycler_trending_selected_thread"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
@@ -518,6 +518,7 @@
                 android:id="@+id/image_frame_selected"
                 android:layout_width="300dp"
                 android:layout_height="400dp"
+                android:scaleType="fitXY"
                 android:layout_centerInParent="true"
                 android:background="@drawable/placeholder" />
 

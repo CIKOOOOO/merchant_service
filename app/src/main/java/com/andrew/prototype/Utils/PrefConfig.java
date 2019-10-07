@@ -3,6 +3,7 @@ package com.andrew.prototype.Utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.R;
 
 
@@ -16,7 +17,8 @@ public class PrefConfig {
     }
 
     public void insertMerchantData(String mid, String name, String location, String profile_picture, String email
-            , String background_picture, int coin, int exp, String position) {
+            , String background_picture, int coin, int exp, String position, String phone_number
+            , String address, String owner_name) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(context.getString(R.string.pref_mid), mid);
         editor.putInt(context.getString(R.string.pref_coin), coin);
@@ -27,6 +29,9 @@ public class PrefConfig {
         editor.putString(context.getString(R.string.pref_email), email);
         editor.putString(context.getString(R.string.pref_background_picture), background_picture);
         editor.putString(context.getString(R.string.pref_position), position);
+        editor.putString(context.getString(R.string.pref_phone_number), phone_number);
+        editor.putString(context.getString(R.string.pref_address), address);
+        editor.putString(context.getString(R.string.pref_owner), owner_name);
         editor.commit();
     }
 
@@ -94,5 +99,22 @@ public class PrefConfig {
         return sharedPreferences.getString(context.getString(R.string.pref_location), "");
     }
 
+    public String getOwnerName() {
+        return sharedPreferences.getString(context.getString(R.string.pref_owner), "");
+    }
+
+    public String getStoreAddress() {
+        return sharedPreferences.getString(context.getString(R.string.pref_address), "");
+    }
+
+    public String getPhoneNumber() {
+        return sharedPreferences.getString(context.getString(R.string.pref_phone_number), "");
+    }
+
+    public Merchant getMerchantData() {
+        return new Merchant(getMID(), getName(), getLocation(), getProfilePicture(), getEmail()
+                , getBackgroundPicture(), getPosition(), getPhoneNumber(), getOwnerName()
+                , getStoreAddress(), getCoin(), getExp());
+    }
 }
 

@@ -55,7 +55,8 @@ public class LoginActivity extends AppCompatActivity {
                                     , merchant.getMerchant_location(), merchant.getMerchant_profile_picture()
                                     , merchant.getMerchant_email(), merchant.getMerchant_background_picture()
                                     , merchant.getMerchant_coin(), merchant.getMerchant_exp()
-                                    , merchant.getMerchant_position());
+                                    , merchant.getMerchant_position(), merchant.getMerchant_phone_number()
+                                    , merchant.getMerchant_address(), merchant.getMerchant_owner_name());
 
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }

@@ -36,6 +36,7 @@ import android.widget.Toast;
 import com.andrew.prototype.Activity.MainActivity;
 import com.andrew.prototype.Adapter.ProfileAdapter;
 import com.andrew.prototype.Adapter.ShowcaseAdapter;
+import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.Model.MerchantStory;
 import com.andrew.prototype.Model.ProfileModel;
 import com.andrew.prototype.R;
@@ -143,7 +144,7 @@ public class Profile extends Fragment implements View.OnClickListener, ShowcaseA
 
 //        showCaseList.addAll(Constant.getShowCase());
 
-        showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, this);
+        showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, new HashMap<String, Merchant>(), this);
 
         Picasso.get().load(prefConfig.getProfilePicture()).into(profilePic);
         if (!prefConfig.getBackgroundPicture().equals("0")) {

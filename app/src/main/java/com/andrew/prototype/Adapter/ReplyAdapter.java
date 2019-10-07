@@ -107,7 +107,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
         void onDelete(int pos);
     }
 
-    public ReplyAdapter(List<Forum.ForumReply> list, Map<String, Merchant> merchantMap, Map<String, List<Forum.ForumImageReply>> replyImageMap, Context context, onReplyClick onReplyClick
+    public ReplyAdapter(List<Forum.ForumReply> list, Map<String, Merchant> merchantMap, Map<String
+            , List<Forum.ForumImageReply>> replyImageMap, Context context, onReplyClick onReplyClick
             , onEdit onEdit, onReplyDelete onReplyDelete) {
         this.list = list;
         this.merchantMap = merchantMap;
@@ -287,6 +288,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.Holder> impl
             @Override
             public void onClick(View view) {
                 onReplyClick.onReplyLike(position);
+                Log.e("asd", "Like" + position);
 //                if (forumThread.isLike()) {
 //                    forumThread.setForum_like_amount(forumThread.getForum_like_amount() - 1);
 //                    forumThread.setLike(false);

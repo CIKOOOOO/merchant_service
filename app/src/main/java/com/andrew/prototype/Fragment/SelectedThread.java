@@ -5,7 +5,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -62,11 +61,9 @@ import com.andrew.prototype.Adapter.ReplyAdapter;
 import com.andrew.prototype.Adapter.ReportAdapter;
 import com.andrew.prototype.Adapter.TrendingAdapter;
 import com.andrew.prototype.Model.Forum;
-import com.andrew.prototype.Model.ForumThread;
 import com.andrew.prototype.Model.ImagePicker;
 import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.Model.Report;
-import com.andrew.prototype.Model.SyncImg;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
@@ -74,7 +71,6 @@ import com.andrew.prototype.Utils.PrefConfig;
 import com.andrew.prototype.Utils.Utils;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -207,7 +203,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         trending_linear = v.findViewById(R.id.linear_trending_selected_thread);
         reply_linear = v.findViewById(R.id.linear_reply);
         recycler_main_forum = v.findViewById(R.id.recycler_img_selected);
-        recycler_trending = v.findViewById(R.id.recyclerTrending_SelectedThread);
+        recycler_trending = v.findViewById(R.id.recycler_trending_selected_thread);
         recycler_reply = v.findViewById(R.id.recycler_reply);
         recycler_img_reply = v.findViewById(R.id.recycler_img_reply);
         recycler_page_number = v.findViewById(R.id.recycler_page_number);
@@ -303,7 +299,8 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             replyList.clear();
 
-                            forum.setForum_like(Integer.parseInt(dataSnapshot.child("forum_like").getValue().toString()));
+                            if (dataSnapshot.child("forum_like").getValue() != null)
+                                forum.setForum_like(Integer.parseInt(dataSnapshot.child("forum_like").getValue().toString()));
 
                             amount_like.setText(forum.getForum_like() + "");
 
@@ -324,15 +321,13 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
 
                                 replyList.add(forumReply);
 
-                                /*
-                                * Apa ini harus dipisah juga ya?
-                                * */
-
                                 for (DataSnapshot ss : snapshot.getChildren()) {
+                                    // Forum Image Reply
                                     List<Forum.ForumImageReply> list = new ArrayList<>();
                                     for (DataSnapshot snapImageReply : ss.getChildren()) {
                                         Forum.ForumImageReply forumImageReply = snapImageReply.getValue(Forum.ForumImageReply.class);
-                                        list.add(forumImageReply);
+                                        if (forumImageReply.getImage_url() != null)
+                                            list.add(forumImageReply);
                                     }
                                     if (list.size() > 0) {
                                         forumImageReplyMap.put(forumReply.getFrid(), list);
@@ -340,7 +335,6 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                                         replyAdapter.notifyDataSetChanged();
                                     }
                                 }
-
 
                                 dbProfile.child(forumReply.getMid()).addValueEventListener(new ValueEventListener() {
                                     @Override
@@ -384,12 +378,13 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                         }
                     });
 
-
                     dbRef.child(forum.getFid()).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             forumImageList.clear();
                             isLike = false;
+                            Forum.ForumLikeBy forumLikeBy = dataSnapshot.getValue(Forum.ForumLikeBy.class);
+
                             for (DataSnapshot a : dataSnapshot.child("forum_like_by").getChildren()) {
                                 if (a.getKey().equals(prefConfig.getMID())) {
                                     isLike = true;
@@ -534,6 +529,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
 
                     Map<String, String> maps = new HashMap<>();
                     maps.put("forum_like_time", Utils.getTime("EEEE, dd-MM-yyyy HH:mm"));
+                    maps.put("forum_like_mid", prefConfig.getMID());
 
                     dbRef.child(forum.getFid() + "/forum_like_by/" + prefConfig.getMID()).setValue(maps);
                 } else {
@@ -605,7 +601,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Log.e("asd", "failure");
+                                        Log.e("Upload Task", "failure");
                                     }
                                 });
                     } else {
@@ -677,28 +673,16 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                 }
                 break;
             case R.id.btn_first_page_reply:
-                setList(0);
-                scrollView.smoothScrollTo(0, recycler_reply.getTop());
-                break;
             case R.id.btn_first_page_reply2:
                 setList(0);
                 scrollView.smoothScrollTo(0, recycler_reply.getTop());
                 break;
             case R.id.btn_end_reply:
-                setList(pageNumberAdapter.getPageList() - 1);
-                scrollView.smoothScrollTo(0, recycler_reply.getTop());
-                break;
             case R.id.btn_end_reply2:
                 setList(pageNumberAdapter.getPageList() - 1);
                 scrollView.smoothScrollTo(0, recycler_reply.getTop());
                 break;
             case R.id.btn_before_reply:
-                if (pageNumberAdapter.getPage_active() - 1 < 0) {
-                    Toast.makeText(mContext, mContext.getResources().getString(R.string.start_of_thread), Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                setList(pageNumberAdapter.getPage_active() - 1);
-                break;
             case R.id.btn_before_reply2:
                 if (pageNumberAdapter.getPage_active() - 1 < 0) {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.start_of_thread), Toast.LENGTH_SHORT).show();
@@ -707,14 +691,6 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                 setList(pageNumberAdapter.getPage_active() - 1);
                 break;
             case R.id.btn_after_reply:
-                if (pageNumberAdapter.getPage_active() + 1 >= pageNumberAdapter.getPageList()) {
-                    Toast.makeText(mContext, mContext.getResources().getString(R.string.end_of_thread), Toast.LENGTH_SHORT).show();
-                    break;
-                } else {
-                    setList(pageNumberAdapter.getPage_active() + 1);
-                    scrollView.smoothScrollTo(0, recycler_reply.getTop());
-                }
-                break;
             case R.id.btn_after_reply2:
                 if (pageNumberAdapter.getPage_active() + 1 >= pageNumberAdapter.getPageList()) {
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.end_of_thread), Toast.LENGTH_SHORT).show();
@@ -725,12 +701,10 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
                 }
                 break;
             case R.id.frame_selected_thread:
-                frameLayout.setVisibility(View.GONE);
-                frameIsVisible = false;
-                break;
             case R.id.btn_close_frame_selected:
                 frameLayout.setVisibility(View.GONE);
                 frameIsVisible = false;
+                MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
                 break;
             case R.id.download_image_frame_selected:
                 if (ActivityCompat.checkSelfPermission(mContext
@@ -1067,7 +1041,13 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
 
     @Override
     public void onReplyLike(int pos) {
-        Forum.ForumReply forumReply = replyList.get(pos);
+        int position;
+        if (pageNumberAdapter.getPage_active() == 0) {
+            position = pos;
+        } else {
+            position = (pageNumberAdapter.getPage_active() * AMOUNT_REPLY) + pos;
+        }
+        Forum.ForumReply forumReply = replyList.get(position);
         Map<String, Object> map = new HashMap<>();
         if (!forumReply.isLike()) {
             map.put("like", true);
@@ -1076,6 +1056,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
 
             Map<String, String> maps = new HashMap<>();
             maps.put("forum_like_time", Utils.getTime("EEEE, dd-MM-yyyy HH:mm"));
+            maps.put("forum_like_mid", prefConfig.getMID());
 
             dbRef.child(forum.getFid() + "/forum_reply/" + forumReply.getFrid() + "/forum_like_by/" + prefConfig.getMID()).setValue(maps);
         } else {
@@ -1132,7 +1113,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
     }
 
     private int getLastPosition() {
-        Log.e("asd", replyList.size() + "");
+//        Log.e("asd", replyList.size() + "");
         if (replyList.size() / AMOUNT_REPLY == 0) {
             return 0;
         } else if (replyList.size() % AMOUNT_REPLY == 0) {
@@ -1183,6 +1164,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         if (replyList.size() > pos) setDeletedList(PAGE_POSITION);
         else if (PAGE_POSITION - 1 < 0) setDeletedList(PAGE_POSITION);
         else setDeletedList(PAGE_POSITION - 1);
+        // kodingin ke android
     }
 
     @Override
@@ -1190,6 +1172,7 @@ public class SelectedThread extends Fragment implements TextWatcher, View.OnClic
         frameIsVisible = true;
         frameLayout.setVisibility(View.VISIBLE);
         Picasso.get().load(forumImageList.get(pos).getImage_url()).into(img_frame_selected);
+        MainActivity.bottomNavigationView.setVisibility(View.GONE);
     }
 
     private boolean isChecked(List<Report> list) {

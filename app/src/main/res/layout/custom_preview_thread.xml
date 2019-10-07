@@ -130,7 +130,8 @@
                     android:layout_marginEnd="10dp"
                     android:background="@drawable/button_cancel_background"
                     android:text="@string/cancel"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textColor="@color/white_color" />
 
                 <Button
                     android:id="@+id/btnSubmit_Preview"
@@ -139,7 +140,8 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/background_reply"
                     android:text="@string/send"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textColor="@color/white_color" />
             </LinearLayout>
         </LinearLayout>
 

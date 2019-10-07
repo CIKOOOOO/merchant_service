@@ -5,10 +5,12 @@ import android.os.Parcelable;
 
 public class Merchant implements Parcelable {
 
-    private String mid, merchant_name, merchant_location, merchant_profile_picture, merchant_email, merchant_background_picture, merchant_position;
+    private String mid, merchant_name, merchant_location, merchant_profile_picture, merchant_email
+            , merchant_background_picture, merchant_position, merchant_phone_number, merchant_owner_name
+            , merchant_address;
     private int merchant_coin, merchant_exp;
 
-    public Merchant(String mid, String merchant_name, String merchant_location, String merchant_profile_picture, String merchant_email, String merchant_background_picture, String merchant_position, int merchant_coin, int merchant_exp) {
+    public Merchant(String mid, String merchant_name, String merchant_location, String merchant_profile_picture, String merchant_email, String merchant_background_picture, String merchant_position, String merchant_phone_number, String merchant_owner_name, String merchant_address, int merchant_coin, int merchant_exp) {
         this.mid = mid;
         this.merchant_name = merchant_name;
         this.merchant_location = merchant_location;
@@ -16,6 +18,9 @@ public class Merchant implements Parcelable {
         this.merchant_email = merchant_email;
         this.merchant_background_picture = merchant_background_picture;
         this.merchant_position = merchant_position;
+        this.merchant_phone_number = merchant_phone_number;
+        this.merchant_owner_name = merchant_owner_name;
+        this.merchant_address = merchant_address;
         this.merchant_coin = merchant_coin;
         this.merchant_exp = merchant_exp;
     }
@@ -31,6 +36,9 @@ public class Merchant implements Parcelable {
         merchant_email = in.readString();
         merchant_background_picture = in.readString();
         merchant_position = in.readString();
+        merchant_phone_number = in.readString();
+        merchant_owner_name = in.readString();
+        merchant_address = in.readString();
         merchant_coin = in.readInt();
         merchant_exp = in.readInt();
     }
@@ -83,6 +91,18 @@ public class Merchant implements Parcelable {
         return merchant_exp;
     }
 
+    public String getMerchant_phone_number() {
+        return merchant_phone_number;
+    }
+
+    public String getMerchant_owner_name() {
+        return merchant_owner_name;
+    }
+
+    public String getMerchant_address() {
+        return merchant_address;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -97,6 +117,9 @@ public class Merchant implements Parcelable {
         parcel.writeString(merchant_email);
         parcel.writeString(merchant_background_picture);
         parcel.writeString(merchant_position);
+        parcel.writeString(merchant_phone_number);
+        parcel.writeString(merchant_owner_name);
+        parcel.writeString(merchant_address);
         parcel.writeInt(merchant_coin);
         parcel.writeInt(merchant_exp);
     }

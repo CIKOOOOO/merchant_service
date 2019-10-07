@@ -127,8 +127,8 @@ public class Forum implements Parcelable {
         }
     }
 
-    public static class ForumReply implements Parcelable{
-        private String frid, mid, forum_content,forum_reply_date;
+    public static class ForumReply implements Parcelable {
+        private String frid, mid, forum_content, forum_reply_date;
         private int forum_like_amount;
         private boolean like;
 
@@ -235,6 +235,26 @@ public class Forum implements Parcelable {
 
         public String getImage_url() {
             return image_url;
+        }
+    }
+
+    public static class ForumLikeBy {
+        private String forum_like_mid, forum_like_time;
+
+        public ForumLikeBy() {
+        }
+
+        public ForumLikeBy(String forum_like_mid, String forum_like_time) {
+            this.forum_like_mid = forum_like_mid;
+            this.forum_like_time = forum_like_time;
+        }
+
+        public String getForum_like_mid() {
+            return forum_like_mid;
+        }
+
+        public String getForum_like_time() {
+            return forum_like_time;
         }
     }
 }

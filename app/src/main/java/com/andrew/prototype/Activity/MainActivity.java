@@ -1,5 +1,6 @@
 package com.andrew.prototype.Activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
@@ -9,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -39,6 +41,7 @@ import com.andrew.prototype.Fragment.TermCondition;
 import com.andrew.prototype.R;
 import com.andrew.prototype.Utils.BottomNavigationViewBehavior;
 import com.andrew.prototype.Utils.Constant;
+import com.andrew.prototype.Utils.FloatingActionButtonBehavior;
 import com.andrew.prototype.Utils.PrefConfig;
 import com.google.firebase.FirebaseApp;
 
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         , View.OnClickListener, DrawerLayout.DrawerListener, BottomNavigationView.OnNavigationItemSelectedListener {
 
     public static BottomNavigationView bottomNavigationView;
+    public static FloatingActionButton floatingActionButton;
 
     private DrawerLayout drawer;
     private boolean exit = false;
@@ -79,10 +83,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         drawer = findViewById(R.id.drawer_layout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_main);
+        floatingActionButton = findViewById(R.id.fab_add_main);
 
         changeFragment(new MainForum());
 
         drawer.addDrawerListener(this);
+        floatingActionButton.setOnClickListener(this);
         burgerMenu.setOnClickListener(this);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
         icon.setOnClickListener(this);
@@ -94,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottomNavigationView.getLayoutParams();
+        CoordinatorLayout.LayoutParams layoutParams2 = (CoordinatorLayout.LayoutParams) floatingActionButton.getLayoutParams();
+        layoutParams2.setBehavior(new FloatingActionButtonBehavior());
         layoutParams.setBehavior(new BottomNavigationViewBehavior());
     }
 
@@ -103,10 +111,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MainActivity.onBackPressFragment onBackPressFragment;
         if (drawer.isDrawerOpen(GravityCompat.END)) {
             drawer.closeDrawer(GravityCompat.END);
-        } else if (fragment instanceof MainForum && MainForum.trendingIsVisible) {
-            onBackPressFragment = new MainForum();
-            onBackPressFragment.onBackPress(false, fragment.getContext());
         } else if (fragment instanceof MainForum) {
+            if (MainForum.trendingIsVisible) {
+                onBackPressFragment = new MainForum();
+                onBackPressFragment.onBackPress(false, fragment.getContext());
+            }
             if (MainForum.showcase_condition) {
                 MainForum.showcase_condition = false;
                 MainForum.frame_showcase.setVisibility(View.GONE);
@@ -167,6 +176,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_frame);
+        if (fragment instanceof MainForum) {
+            floatingActionButton.show();
+        } else floatingActionButton.hide();
+    }
+
+    @SuppressLint("RestrictedApi")
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -179,8 +198,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.merchantforum:
                 changeFragment(new MainForum());
+                floatingActionButton.show();
                 break;
-
             case R.id.bot_home:
                 changeFragment(new HomeFragment());
                 break;
@@ -212,6 +231,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                break;
             case R.id.main_icon_toolbar:
                 changeFragment(new MainForum());
+                break;
+            case R.id.fab_add_main:
+                changeFragment(new NewThread());
                 break;
         }
     }

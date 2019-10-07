@@ -20,6 +20,8 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -57,8 +59,10 @@ import com.andrew.prototype.Model.ForumThread;
 import com.andrew.prototype.Model.Merchant;
 import com.andrew.prototype.Model.MerchantStory;
 import com.andrew.prototype.R;
+import com.andrew.prototype.Utils.BottomNavigationViewBehavior;
 import com.andrew.prototype.Utils.Constant;
 import com.andrew.prototype.Utils.DecodeBitmap;
+import com.andrew.prototype.Utils.FloatingActionButtonBehavior;
 import com.andrew.prototype.Utils.PrefConfig;
 import com.andrew.prototype.Utils.Utils;
 import com.baoyz.widget.PullRefreshLayout;
@@ -130,7 +134,7 @@ public class MainForum extends Fragment implements View.OnClickListener
     private PrefConfig prefConfig;
     private FrameLayout frame_loading;
 
-    private Map<String, Merchant> merchantMap;
+    private Map<String, Merchant> merchantMap, merchantStoryMap;
     private boolean c;
     private int page_number;
     private boolean isLoad;
@@ -155,13 +159,14 @@ public class MainForum extends Fragment implements View.OnClickListener
 
         mContext = v.getContext();
 
+        trendingIsVisible = false;
+        showcase_condition = false;
+        isSearch = false;
+
         c = false;
         page_number = 1;
         isLoad = true;
         previous_total = 0;
-        trendingIsVisible = false;
-        showcase_condition = false;
-        isSearch = false;
 
         prefConfig = new PrefConfig(mContext);
         dbStory = FirebaseDatabase.getInstance().getReference(Constant.DB_REFERENCE_MERCHANT_STORY);
@@ -195,10 +200,10 @@ public class MainForum extends Fragment implements View.OnClickListener
         tempList = new ArrayList<>();
         searchList = new ArrayList<>();
         showCaseList = new ArrayList<>();
-
         forumLists = new ArrayList<>();
 
         merchantMap = new HashMap<>();
+        merchantStoryMap = new HashMap<>();
 
         threadLayoutManager = new LinearLayoutManager(mContext);
         swipeRefreshLayout.setDurations(0, 3);
@@ -317,10 +322,12 @@ public class MainForum extends Fragment implements View.OnClickListener
             case R.id.btn_close_frame:
                 frame_showcase.setVisibility(View.GONE);
                 MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
+                MainActivity.floatingActionButton.show();
                 break;
             case R.id.rl_frame_main:
                 frame_showcase.setVisibility(View.GONE);
                 MainActivity.bottomNavigationView.setVisibility(View.VISIBLE);
+                MainActivity.floatingActionButton.hide();
                 break;
             case R.id.download_image_frame:
                 Bitmap bitmap = ((BitmapDrawable) img_showcase.getDrawable()).getBitmap();
@@ -453,6 +460,25 @@ public class MainForum extends Fragment implements View.OnClickListener
                                 }
                             });
 
+                            for (int i = 0; i < showCaseList.size(); i++) {
+                                final int a = i;
+                                dbProfile.child(showCaseList.get(i).getMid()).addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshots) {
+                                        if (dataSnapshots.getValue(Merchant.class) == null || showCaseList.get(a).getMid() == null || merchantStoryMap.containsKey(showCaseList.get(a).getMid())) {
+                                            return;
+                                        }
+                                        merchantStoryMap.put(showCaseList.get(a).getMid(), Objects.requireNonNull(dataSnapshots.getValue(Merchant.class)));
+                                        showcaseAdapter.setMerchantMap(merchantStoryMap);
+                                        showcaseAdapter.notifyItemChanged(a + 1);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                    }
+                                });
+                            }
                             showcaseAdapter.setShowCases(showCaseList);
                             showcaseAdapter.notifyDataSetChanged();
                         }
@@ -523,7 +549,7 @@ public class MainForum extends Fragment implements View.OnClickListener
         trending_recycler_view.setLayoutManager(new LinearLayoutManager(view.getContext()));
         trending_recycler_view.setAdapter(trendingAdapter);
 
-        showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, this);
+        showcaseAdapter = new ShowcaseAdapter(mContext, showCaseList, true, merchantStoryMap, this);
         showcase_recycler_view.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.HORIZONTAL, false));
         showcase_recycler_view.setAdapter(showcaseAdapter);
 
@@ -608,6 +634,7 @@ public class MainForum extends Fragment implements View.OnClickListener
                 frame_showcase.getBackground().setAlpha(230);
                 Picasso.get().load(showCaseList.get(pos - 1).getStory_picture()).into(img_showcase);
                 MainActivity.bottomNavigationView.setVisibility(View.GONE);
+                MainActivity.floatingActionButton.hide();
             }
         }
     }
@@ -794,7 +821,6 @@ public class MainForum extends Fragment implements View.OnClickListener
                     @Override
                     public void onClick(DialogInterface dialogInterface, int a) {
                         dbForum.child(forum.getFid()).removeValue();
-                        forumLists.remove(i);
                         threadAdapter.deleteList(i);
                         previous_total--;
                         Toast.makeText(mContext, mContext.getResources().getString(R.string.thread_deleted), Toast.LENGTH_SHORT).show();
